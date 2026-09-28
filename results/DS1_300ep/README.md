@@ -1,25 +1,32 @@
-# DS1 — PhyloGFN-Net Results
+# DS1 300-epoch network result
 
-## Sampled Level-1 Phylogenetic Network
+## Annotated network figure
 
-![DS1 sampled phylogenetic network](network_radial_v2.png)
+Below is one sampled level-1 phylogenetic network from the trained DS1 model (epoch 299 checkpoint).
 
-**Figure:** A phylogenetic network sampled from the trained PhyloGFN-Net model for DS1 using the final checkpoint at epoch 299.
+![Annotated DS1 network](network_radial_v3_annotated.png)
 
-The dataset contains 27 taxa. This sampled network contains two reticulation events (`R = 2`), represented by the reticulation nodes `H1` and `H2`.
+## What this figure shows
 
-Gray edges represent the tree-like part of the topology, while the highlighted teal edges indicate reticulation connections. The root is shown near the center of the network.
+- This is a sampled phylogenetic **network**, not a tree.
+- The figure comes from the trained **PhyloGFN-Net** model on **DS1**.
+- The network contains **2 reticulation nodes**: **H1** and **H2**.
+- Gray edge labels show **branch lengths**.
+- Reticulation edges also show **inheritance weight (theta)**.
+- The root is shown at the center/top of the network layout.
 
-The radial arrangement is used only for visualization and does not represent evolutionary time or biological distance.
+## Files
 
-This figure represents one sample from the learned distribution. It is not necessarily the highest-scoring or most frequently sampled network topology.
+- `network_radial_v3_annotated.png`  
+  Annotated network figure with branch lengths and inheritance weights.
 
-Branch lengths and reticulation inheritance probabilities (`theta`) are not displayed in this visualization.
+- `network_radial_v3_edges.txt`  
+  Text table containing the numerical branch lengths and inheritance weights.
 
-### Source
+## Interpretation
 
-- Dataset: DS1
-- Model: PhyloGFN-Net
-- Network class: Level-1 phylogenetic network
-- Final checkpoint: epoch 299
-- Maximum reticulations allowed: `R_MAX = 2`
+This result shows that the trained model can generate a level-1 phylogenetic network and assign:
+- branch lengths to edges,
+- and inheritance probabilities to reticulation parents.
+
+This figure is one sampled example from the checkpoint at epoch 299.
