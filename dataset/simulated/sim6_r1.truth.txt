@@ -1,0 +1,15 @@
+root 10
+edge 6 11 0.1861
+edge 6 4 0.1425
+edge 7 12 0.2064
+edge 7 5 0.0664
+edge 8 0 0.1148
+edge 8 2 0.1086
+edge 9 8 0.1852
+edge 9 7 0.1874
+edge 10 9 0.1080
+edge 10 3 0.0879
+edge 11 1 0.0898
+edge 12 6 0.1032
+edge 12 11 0.2894
+reticulation 11 parents 6 12 theta 0.500

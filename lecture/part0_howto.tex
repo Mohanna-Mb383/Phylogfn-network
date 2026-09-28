@@ -1,0 +1,37 @@
+\section*{Part 0 --- How to use this document}
+\addcontentsline{toc}{section}{Part 0 --- How to use this document}
+
+\paragraph{What your supervisor asked.} ``This code takes sequences and generates phylogenetic \emph{trees}. Force it to generate phylogenetic \emph{networks}.'' A tree says every species has one parent lineage. A network allows a lineage to have \emph{two} parent lineages (a \emph{reticulation}: hybridisation, horizontal gene transfer, recombination). The code must therefore (i) be able to \emph{build} such objects step by step, (ii) be able to \emph{score} them with a likelihood, and (iii) keep the mathematical guarantee of a GFlowNet: sample each object with probability proportional to its score.
+
+\paragraph{The one-sentence summary you must be able to say.}\leavevmode
+
+\begin{saybox}
+PhyloGFN grows a tree by repeatedly \emph{merging} two lineages under a new ancestor. I added one more move, \emph{reticulate}, which puts a new hybrid node above a lineage and opens two parent ``slots''; three constant-time legality rules keep every object a level-1 network; a lineage carrying an open hybrid node keeps two partial likelihoods instead of one, so the network likelihood is computed exactly without enumerating the $2^R$ displayed trees; the reward gets a prior $e^{-\lambda R}$ on the number of hybrid nodes; the trajectory-balance objective, the uniform backward policy and the marginal-likelihood estimator are unchanged in form and I verified the whole thing against exact enumerations.
+\end{saybox}
+
+\paragraph{Reading order.} Part~I is biology in plain words. Part~II is the mathematics (only what is needed). Part~III walks through the \emph{original} code file by file so that you know what is being modified. Part~IV explains the \emph{design} of the extension (the decisions and why they are correct). Part~V lists every modification with its code. Part~VI shows the tests and their results. Part~VII tells you how to run everything. Part~VIII is honest about limits. Part~IX is a rehearsal of questions a professor will ask.
+
+\paragraph{Notation used everywhere.}
+\begin{center}\small
+\begin{tabular}{ll}\toprule
+$N$ & number of taxa (leaves, observed sequences) \\
+$m$ (code: \code{m}) & number of sites (alignment columns); $|\Sigma| = 4$ for DNA \\
+$\bY = (\bY^1,\dots,\bY^m)$ & the alignment; $\bY^i$ is column $i$ \\
+$G$ & topology (tree or network); $\bb$ branch lengths; $\btheta$ inheritance weights \\
+$R = R(G)$ & number of reticulation nodes of $G$; $R_{\max}$ the budget (config \code{R\_MAX}) \\
+$h$, slots $p_1,p_2$ & a reticulation node and its two parent ``slots'' \\
+$\theta_h$ & probability that a site inherits through slot $p_1$ of $h$ ($1-\theta_h$ through $p_2$) \\
+$P(\bY\mid G,\bb,\btheta)$ & likelihood; $P(\bb)$, $P(\btheta)$, $P(G)$ priors; $\R(x)$ the GFlowNet reward \\
+$s_0 \to s_1 \to \dots \to x$ & a trajectory of the MDP; $\PF$, $\PB$ forward / backward policies; $Z$ partition function \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\paragraph{Files delivered with this lecture.}
+\begin{itemize}[nosep]
+  \item \file{phylogfn-net/} --- the modified repository (original files untouched except four small registrations; all new code in new files).
+  \item \file{phylogfn-net.patch} --- the exact \code{git diff} against the original repository.
+  \item \pfile{tests/test_network_env.py} --- the five verification tests (Part~VI).
+  \item \pfile{tools/simulate_network_data.py}, \pfile{tools/compare_tree_mode.py} --- data simulation and the tree-mode consistency check.
+\end{itemize}
+\clearpage

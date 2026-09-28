@@ -1,0 +1,65 @@
+\section{Part VII --- How to run everything}
+
+\subsection{Installation}
+\begin{lstlisting}[style=sh]
+conda create -n phylogfn python=3.10 && conda activate phylogfn
+pip install torch numpy scipy tqdm dill docopt fvcore ete3 networkx     # networkx: tests / data simulation only
+\end{lstlisting}
+(The original \code{README} lists the same packages via conda; \code{tensorboard} is only needed by the original \file{train.py}.)
+
+\subsection{Run the verification tests first}
+\begin{lstlisting}[style=sh]
+python tests/test_network_env.py            # ~ 3-4 minutes on a laptop CPU
+\end{lstlisting}
+Expected output (abridged):
+\begin{lstlisting}[style=sh]
+N=4 R_MAX=2: reachable terminal networks 603 (expected 603); 4829 distinct states; dead ends 0
+N=5 R_MAX=2: reachable terminal networks 11460 (expected 11460); 109131 distinct states; dead ends 0
+max |fast - explicit| = 1.47e-11
+backward round trip ok
+trajectory lengths ok
+ALL TESTS PASSED
+\end{lstlisting}
+
+\subsection{Simulate data with a known network and train}
+\begin{lstlisting}[style=sh]
+python tools/simulate_network_data.py dataset/simulated/sim6_r1.pickle --leaves=6 --sites=300 --rets=1 --seed=3
+python train_net.py src/configs/network_cfgs/cfg_net_small_cpu.yaml dataset/simulated/sim6_r1.pickle runs/sim6_r1
+\end{lstlisting}
+The truth (edges, reticulation, $\theta$) is written to \file{dataset/simulated/sim6\_r1.truth.txt}. Each epoch prints the MLL estimate, the Pearson correlation and the histogram of the number of reticulations in 1\,024 samples; \file{runs/.../history.pkl} keeps them; \file{best\_networks.pt} is the replay buffer (a heap of \code{PhyloNetwork} objects, each with \code{.root}, \code{.log\_score}, \code{.topology\_id}).
+
+\subsection{Train on a benchmark alignment}
+\begin{lstlisting}[style=sh]
+python train_net.py src/configs/network_cfgs/cfg_net_small_cpu.yaml dataset/benchmark_datasets/DS1.pickle runs/ds1_net --device=cuda
+\end{lstlisting}
+For DS1 ($N=27$) use a GPU and the PhyloGFN-sized architecture (\code{DEPTH: 6}, embedding 128, 500 epochs $\times$ 1\,000 steps as in \file{cfg\_continuous\_temperature\_anneal\_0.4.yaml}); the network config only changes \code{ENVIRONMENT\_TYPE}, \code{NETWORK.R\_MAX}, \code{NETWORK.LAMBDA\_R} and the two new heads.
+
+\subsection{Tree mode (the equivalence check)}
+\begin{lstlisting}[style=sh]
+python tools/compare_tree_mode.py dataset/simulated/sim6_r1.pickle 8 40
+\end{lstlisting}
+
+\subsection{Configuration keys added}
+\begin{center}\small
+\begin{tabular}{p{5.6cm}p{2.6cm}p{6.3cm}}\toprule
+Key & Default & Meaning \\ \midrule
+\pfile{ENV.ENVIRONMENT_TYPE} & \pfile{ONE_STEP_LEVEL1_NETWORK} & selects the network environment (tree mode: \pfile{ONE_STEP_BINARY_TREE}) \\
+\pfile{ENV.NETWORK.R_MAX} & 2 & maximum number of reticulation nodes \\
+\pfile{ENV.NETWORK.LAMBDA_R} & 1.0 & strength of the reticulation prior \\
+\pfile{ENV.NETWORK.PRIOR_TYPE} & \pfile{EXP_R} & \pfile{EXP_R}: $p(G)\propto e^{-\lambda_RR}$ over the class; \pfile{UNIFORM_R}: $p(R)\propto e^{-\lambda_RR}$, uniform within each $R$ \\
+\pfile{GFN.MODEL.TRANSFORMER.SINGLE_LOGITS_HEAD} & MLP cfg & head scoring \textsc{Reticulate}$(i)$ \\
+\pfile{GFN.MODEL.RETICULATION_MODELING} & 5 comp., range 6 & mixture head for $(\log b_{hx},\mathrm{logit}\,\theta)$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Reading a sampled network}
+\begin{lstlisting}
+import pickle
+best = pickle.load(open('runs/<run>/best_networks.pt', 'rb'))
+net = max(best, key=lambda n: n.log_score)
+print(net.topology_id, net.log_score, net.num_reticulations())
+for p, c, d in net.edges(): print(p, '->', c, round(d, 4))
+for h in reticulation_nodes(net.root): print('reticulation', h.idx, 'theta', h.theta, 'parents', [p.idx for p in h.parents])
+\end{lstlisting}
+\clearpage

@@ -1,0 +1,56 @@
+\section{Part II --- The mathematics you need}
+
+\subsection{Sequence evolution and the likelihood of a tree}
+\paragraph{Jukes--Cantor (JC69).} Along an edge of length $b$ a nucleotide changes according to the $4\times4$ matrix $P(b)=\exp(Qb)$ with rate matrix $Q_{ii}=-1$, $Q_{ij}=1/3$. Closed form: $P(b)_{ii}=\tfrac14+\tfrac34e^{-4b/3}$, $P(b)_{ij}=\tfrac14-\tfrac14e^{-4b/3}$. The code computes $P(b)=U\,\mathrm{diag}(e^{Db})\,U^{-1}$ from the eigen-decomposition (\code{decompJC}, \code{get\_transition\_matrices}). Two properties used later: rows of $P(b)$ sum to one ($P(b)\mathbf 1=\mathbf 1$), and $P(b_1)P(b_2)=P(b_1+b_2)$ (Markov property).
+
+\paragraph{Felsenstein pruning (paper eq.~1).} For node $u$ and site $i$ let $L^i_u(a)$ be the probability of the data below $u$ given that $u$ carries nucleotide $a$. Leaves: $L^i_v(a)=[\,y^i_v=a\,]$ (one-hot). Internal node $u$ with children $v,w$ and edges $b_v,b_w$:
+\begin{equation}\label{eq:felsenstein}
+L^i_u(a)=\Big(\sum_{a'}P(b_v)_{aa'}L^i_v(a')\Big)\Big(\sum_{a''}P(b_w)_{aa''}L^i_w(a'')\Big),
+\quad\text{i.e. } L_u = (L_v P(b_v)^{\!\top}\!)\odot(L_w P(b_w)^{\!\top}\!).
+\end{equation}
+The likelihood of site $i$ is $P(\bY^i\mid G,\bb)=\sum_a \pi_a L^i_{\text{root}}(a)$ with $\pi_a=\tfrac14$, and $P(\bY\mid G,\bb)=\prod_i P(\bY^i\mid G,\bb)$ (sites independent). In the code the vector over sites and nucleotides $L_u\in\mathbb R^{m\times4}$ is called a \emph{feature} of the (sub)tree rooted at $u$; \code{compute\_partial\_prob} implements eq.~\eqref{eq:felsenstein} and returns both the new feature and the log-likelihood.
+
+\paragraph{The linearity fact.} Eq.~\eqref{eq:felsenstein} is \emph{linear} in each child feature: if $L_v=\alpha L'_v+\beta L''_v$ then $L_u=\alpha L'_u+\beta L''_u$ with the same $L_w$. Everything in Part~IV rests on this.
+
+\subsection{Priors and the reward}
+PhyloGFN (Sec.~4.1 of the paper) uses a uniform prior over topologies and independent exponential priors on branch lengths, $P(b_e)=\lambda e^{-\lambda b_e}$ with $\lambda=10$ (config \code{PRIOR\_LAMBDA}). The reward is the unnormalised posterior
+\begin{equation}
+\R(G,\bb)=P(\bY\mid G,\bb)\,P(\bb),\qquad \log\R = \log P(\bY\mid G,\bb)+\sum_e\log P(b_e).
+\end{equation}
+The code folds the prior into the features site by site: the feature of a subtree is multiplied by $P(b_e)^{1/m}$ for every edge $e$ inside it (paper eq.~4, $\rho^i_u=f^i_u\prod_e P(b_e)^{1/m}$), so that the product over the $m$ sites at the root reproduces $\prod_e P(b_e)$ exactly. Training uses a \emph{temperature}: $\log\R_T=(C+\log\R)/T$ with $T$ annealed from 16 (or 8) down to 1; at $T=1$ the target is the true posterior.
+
+\subsection{Likelihood of a network}
+Under the displayed-tree model,
+\begin{equation}\label{eq:netlik}
+P(\bY\mid G,\bb,\btheta)=\prod_{i=1}^{m}\ \sum_{T\in\mathcal T(G)} w(T\mid\btheta)\,P(\bY^i\mid T,\bb),
+\qquad w(T\mid\btheta)=\prod_h\theta_h^{[T\ni p_1(h)]}(1-\theta_h)^{[T\ni p_2(h)]}.
+\end{equation}
+Note the order: the sum over displayed trees is \emph{inside} the product over sites (each site chooses its own tree). The network reward adds a prior on the number of reticulations,
+\begin{equation}
+\log\R(G,\bb,\btheta)=\log P(\bY\mid G,\bb,\btheta)+\sum_e\log P(b_e)-\lambda_R\,R(G),\qquad p(\theta_h)=\mathrm{Uniform}(0,1),
+\end{equation}
+so that $p(G)\propto e^{-\lambda_R R(G)}$ over the level-1 class ($\lambda_R$ is config \code{LAMBDA\_R}; a hyper-prior on $\lambda_R$ is future work, see Part~VIII).
+
+\subsection{GFlowNets and trajectory balance}
+\begin{defbox}[The objects]
+A GFlowNet is defined on a directed acyclic graph of \emph{states}: an initial state $s_0$, intermediate states, and \emph{terminal} states $x$ (the objects we want to sample). A \emph{forward policy} $\PF(s'\mid s)$ is a distribution over the children of $s$; following it from $s_0$ produces a trajectory $\tau=(s_0\to s_1\to\dots\to x)$ with probability $\PF(\tau)=\prod_t\PF(s_{t+1}\mid s_t)$. A \emph{backward policy} $\PB(s\mid s')$ is a distribution over the parents of $s'$. The \emph{partition function} is $Z=\sum_x\R(x)$.
+\end{defbox}
+The goal (paper eq.~2): $\PF^{\top}(x):=\sum_{\tau\to x}\PF(\tau)=\R(x)/Z$. The \emph{trajectory balance} objective (Malkin et al.\ 2022; paper eq.~3) is, for one trajectory,
+\begin{equation}\label{eq:tb}
+\mathcal L_{\mathrm{TB}}(\tau)=\Big(\log Z_\phi+\sum_t\log\PF(s_{t+1}\mid s_t;\phi)-\log\R(x)-\sum_t\log\PB(s_t\mid s_{t+1})\Big)^2 .
+\end{equation}
+If $\mathcal L_{\mathrm{TB}}=0$ on all trajectories, then $\PF^\top(x)=\R(x)/Z$ for every $x$, whatever $\PB$ is (it only has to be a valid distribution over parents). PhyloGFN --- and we --- fix $\PB$ \emph{uniform}: $\PB(s\mid s')=1/|\mathrm{Pa}(s')|$, so the only thing the code has to know about the backward direction is \emph{how many parents a state has}.
+
+\begin{whybox}[Why the number of parents matters so much]
+Every state of the tree MDP (a set of $l$ rooted trees) can be reached from several parents: undo the last merge of any of its non-leaf trees. PhyloGFN counts these (\code{has\_children.sum(-1)}) and uses $2N-3$ at the last step, because the terminal object is an \emph{unrooted} tree that can be produced by $2N-3$ different last merges. In the network MDP a state can also be reached by undoing a reticulation, and only when the undo leads to a \emph{legal} state; getting this count right is one of the modifications (M6).
+\end{whybox}
+
+\paragraph{Continuous actions.} Branch lengths are real numbers, so a ``step'' is a discrete choice (which pair) \emph{and} a continuous draw (the lengths). Then $\PF(s'\mid s)$ is a probability \emph{density} and eq.~\eqref{eq:tb} still holds (Lahlou et al.\ 2023). PhyloGFN-Continuous models $\log b$ by a Gaussian mixture and converts the density with the change of variables $\log p(b)=\log p(\log b)-\log b$ (\code{correction = edge\_actions} in \code{compute\_log\_path\_pf}). We reuse this and add the same trick for $\theta$ through its logit.
+
+\subsection{Estimating the marginal likelihood}
+The evidence $P(\bY)=\sum_G\int P(\bY\mid G,\bb)P(\bb)P(G)\,d\bb$ is what MrBayes' stepping-stone estimates. PhyloGFN's estimator (paper eq.~5, Appendix~B) samples $K$ trajectories from $\PF$ and computes the importance-weighted lower bound
+\begin{equation}\label{eq:mll}
+\log P(\bY)\ \ge\ \mathbb E\ \log\Big(P(G)\,\frac1K\sum_{k=1}^K\frac{\PB(\tau_k\mid x_k)\,\R(x_k)}{\PF(\tau_k)}\Big).
+\end{equation}
+For trees $P(G)=1/(2N-5)!!$ (uniform over unrooted topologies; \code{tree\_factor} in \code{gfn\_evaluator.py}). For networks $P(G)=e^{-\lambda_RR(G)}/Z_\lambda$ with $Z_\lambda=\sum_{k\le R_{\max}}r(N,k)e^{-\lambda_Rk}$, where $r(N,k)$ is the number of level-1 networks with $N$ leaves and $k$ reticulations --- computed exactly from a published closed formula (M9).
+\clearpage

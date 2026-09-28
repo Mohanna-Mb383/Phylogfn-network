@@ -1,0 +1,6 @@
+Epoch 0: MLL -1946.359  PearsonR -0.516  mean R 1.54  R histogram [47, 373, 604]
+Epoch 1: MLL -1896.761  PearsonR 0.204  mean R 1.54  R histogram [47, 382, 595]
+Epoch 2: MLL -1877.165  PearsonR -0.150  mean R 1.70  R histogram [16, 280, 728]
+Epoch 3: MLL -1858.913  PearsonR -0.154  mean R 1.66  R histogram [26, 297, 701]
+Epoch 4: MLL -1856.844  PearsonR 0.487  mean R 1.65  R histogram [24, 306, 694]
+Epoch 5: MLL -1849.750  PearsonR 0.686  mean R 1.38  R histogram [62, 515, 447]

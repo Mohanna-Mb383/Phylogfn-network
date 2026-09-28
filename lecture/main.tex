@@ -1,0 +1,87 @@
+% ============================================================================
+%  From PhyloGFN to PhyloGFN-Net
+%  A self-lecture on turning the PhyloGFN tree sampler into a level-1 network sampler
+%  Overleaf: upload the whole `lecture/` folder, compile main.tex with pdfLaTeX.
+% ============================================================================
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=2.3cm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+% \usepackage{lmodern}  % Overleaf has it; if your TeX lacks it, comment this line
+\usepackage{amsmath,amssymb,amsthm,bm}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{enumitem}
+\usepackage{tcolorbox}
+\usepackage{hyperref}
+\usepackage[expansion=false]{microtype}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning}
+
+\hypersetup{colorlinks=true,linkcolor=blue!50!black,citecolor=blue!50!black,urlcolor=blue!60!black}
+
+% ---------- code listings ----------
+\definecolor{codebg}{RGB}{247,248,250}
+\definecolor{codekw}{RGB}{0,92,140}
+\definecolor{codecm}{RGB}{95,111,126}
+\definecolor{codestr}{RGB}{160,60,20}
+\lstdefinestyle{py}{
+  language=Python, basicstyle=\ttfamily\footnotesize, backgroundcolor=\color{codebg},
+  keywordstyle=\color{codekw}\bfseries, commentstyle=\color{codecm}\itshape, stringstyle=\color{codestr},
+  showstringspaces=false, breaklines=true, breakatwhitespace=false, tabsize=4, frame=single, rulecolor=\color{black!20},
+  numbers=left, numberstyle=\tiny\color{black!50}, numbersep=6pt, xleftmargin=1.6em, framexleftmargin=1.2em,
+  literate={θ}{{$\theta$}}1 {λ}{{$\lambda$}}1 {→}{{$\rightarrow$}}1 {≤}{{$\le$}}1 {≥}{{$\ge$}}1 {∅}{{$\emptyset$}}1 {∪}{{$\cup$}}1 {≠}{{$\neq$}}1 {∏}{{$\prod$}}1 {Σ}{{$\Sigma$}}1 {ρ}{{$\rho$}}1 {²}{{$^2$}}1 {ε}{{$\varepsilon$}}1 {−}{{-}}1 {·}{{$\cdot$}}1 {×}{{$\times$}}1 {–}{{--}}1 {'}{{'}}1
+}
+\lstdefinestyle{sh}{basicstyle=\ttfamily\footnotesize, backgroundcolor=\color{codebg}, frame=single, rulecolor=\color{black!20}, breaklines=true}
+\lstset{style=py}
+
+% ---------- boxes ----------
+\newtcolorbox{whybox}[1][Why]{colback=orange!6,colframe=orange!70!black,title=#1,fonttitle=\bfseries,left=4pt,right=4pt,top=3pt,bottom=3pt}
+\newtcolorbox{keybox}[1][Key idea]{colback=teal!6,colframe=teal!70!black,title=#1,fonttitle=\bfseries,left=4pt,right=4pt,top=3pt,bottom=3pt}
+\newtcolorbox{defbox}[1][Definition]{colback=blue!4,colframe=blue!50!black,title=#1,fonttitle=\bfseries,left=4pt,right=4pt,top=3pt,bottom=3pt}
+\newtcolorbox{warnbox}[1][Pitfall]{colback=red!5,colframe=red!60!black,title=#1,fonttitle=\bfseries,left=4pt,right=4pt,top=3pt,bottom=3pt}
+\newtcolorbox{saybox}[1][How to say it in the defence]{colback=green!5,colframe=green!45!black,title=#1,fonttitle=\bfseries,left=4pt,right=4pt,top=3pt,bottom=3pt}
+
+\newtheorem{proposition}{Proposition}
+\newtheorem{lemma}{Lemma}
+\DeclareRobustCommand{\code}[1]{\texttt{#1}}
+\DeclareRobustCommand{\file}[1]{\texttt{\small #1}}
+\newcommand{\pfile}[1]{{\small\path{#1}}}   % breakable path for tables / long names in the body
+\newcommand{\PF}{P_F}
+\newcommand{\PB}{P_B}
+\newcommand{\R}{\mathcal{R}}
+\newcommand{\bY}{\mathbf{Y}}
+\newcommand{\bb}{\mathbf{b}}
+\newcommand{\btheta}{\bm{\theta}}
+
+\title{\textbf{From PhyloGFN to PhyloGFN-Net}\\[4pt]\large A self-lecture on turning the PhyloGFN tree sampler\\into a sampler of level-1 phylogenetic networks\\[6pt]\normalsize (paper: Zhou et al., ICLR 2024 --- code: \url{https://github.com/zmy1116/phylogfn})}
+\author{Prepared for the doctoral candidate, PDEIC / INESC-ID}
+\date{September 2026}
+
+\sloppy
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\noindent This document teaches, from zero, everything needed to understand, present and defend a concrete transformation of the PhyloGFN code base: the original program builds \emph{phylogenetic trees} by merging pairs of lineages; the modified program (\emph{PhyloGFN-Net}) builds \emph{level-1 phylogenetic networks} by adding one new action, \textsc{Reticulate}, three legality masks, a two-version representation of partial likelihoods, a reticulation prior, and the corresponding policy heads, backward policy and marginal-likelihood estimator. Every modification is listed with the code that implements it and the reason it is needed. Every claim about the new code is backed by a test that you can run: the new Markov decision process reaches \emph{exactly} the known class of level-1 networks (603 networks for four taxa, 11\,460 for five), it has no dead ends, its fast likelihood agrees with an explicit enumeration of the $2^R$ displayed trees to $10^{-11}$, and with the reticulation budget set to zero it reproduces PhyloGFN.
+\end{abstract}
+
+\tableofcontents
+\clearpage
+
+\input{part0_howto}
+\input{part1_biology}
+\input{part2_maths}
+\input{part3_original_code}
+\input{part4_design}
+\input{part5_modifications}
+\input{part6_verification}
+\input{part7_running}
+\input{part8_limits}
+\input{part9_defence}
+\appendix
+\input{appA_glossary}
+
+\end{document}

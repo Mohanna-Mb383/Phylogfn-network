@@ -1,0 +1,27 @@
+\section{Part I --- The problem in plain words}
+
+\subsection{Trees}
+A \emph{phylogenetic tree} is a diagram of ancestry. The leaves are the $N$ things we observed (species, strains, genes), each with a DNA sequence of $m$ letters. Every internal node is a hypothetical common ancestor; every edge (branch) has a \emph{length} $b_e$ measuring how much evolutionary change happened along it. A \emph{rooted binary} tree has one root, every internal node has exactly two children, and there are $2N-1$ nodes and $2N-2$ edges. Two facts drive everything:
+\begin{itemize}[nosep]
+  \item There are $(2N-3)!!\,=\,1\cdot3\cdot5\cdots(2N-3)$ rooted binary trees on $N$ labelled leaves (945 for $N=6$; about $10^{31}$ for $N=27$). We cannot look at all of them.
+  \item Under a model of sequence evolution we can compute how probable the data are for a given tree --- the \emph{likelihood} --- in time linear in $N$ and $m$ (Felsenstein's pruning algorithm, Part~II).
+\end{itemize}
+Bayesian phylogenetics wants the \emph{posterior} $P(G,\bb\mid\bY)\propto P(\bY\mid G,\bb)\,P(\bb)\,P(G)$: not the single best tree but the whole distribution, because the data rarely determine the tree completely.
+
+\subsection{Why trees are not enough: reticulation}
+Bacteria exchange genes horizontally; plants hybridise; viruses recombine. Then some part of a genome has \emph{two} parents. A \emph{phylogenetic network} keeps the tree picture but allows nodes with two incoming edges, called \emph{reticulation nodes} (we write $h$). A reticulation node has one child and two parents; each parent edge carries an \emph{inheritance weight}: a site (a column of the alignment) descends through the first parent with probability $\theta_h$ and through the second with probability $1-\theta_h$.
+
+\begin{defbox}[Displayed trees]
+Delete, for every reticulation node $h$, one of its two parent edges, and then erase every node that is left with one parent and one child (joining its two edges and adding their lengths). The result is a tree, called a \emph{displayed tree} of the network. A network with $R$ reticulation nodes displays $2^R$ trees. The displayed-tree likelihood model (Jin, Nakhleh, Snir \& Tuller 2006) says: \emph{each site of the alignment evolved along one displayed tree}, chosen independently with probability $w(T\mid\btheta)=\prod_h \theta_h^{[T\text{ keeps }p_1(h)]}(1-\theta_h)^{[T\text{ keeps }p_2(h)]}$.
+\end{defbox}
+
+\subsection{Level-1 networks: the class we generate}
+General networks are far too many and their likelihood is far too expensive. The thesis restricts to \emph{level-1} networks: every cycle of the (undirected) network contains exactly one reticulation node, and different cycles share no vertex. Pictorially: a tree with a few independent ``bubbles'' (galls) hanging in it; each bubble is a cycle that starts at a tree node, splits into two paths, and closes at a reticulation node. Level-1 is the smallest class that models independent reticulation events, it is the class for which many algorithmic questions are tractable, and --- crucially for this work --- its likelihood can be computed \emph{without} listing the $2^R$ displayed trees (Part~IV).
+
+\begin{keybox}[Numbers you should know]
+Level-1 networks with $N$ labelled leaves and at most 2 reticulations: 603 for $N=4$, 11\,460 for $N=5$, 236\,835 for $N=6$, 5\,273\,100 for $N=7$, 126\,087\,255 for $N=8$ (Bouvel, Gambette \& Mansouri 2020, and the direct enumeration shipped with this code). The new MDP reaches exactly these numbers (Part~VI).
+\end{keybox}
+
+\subsection{What ``generate'' means here: a GFlowNet}
+A GFlowNet (generative flow network) is a learned stochastic \emph{constructor}. It starts from an empty object and applies actions one at a time until the object is complete; the probability of ending at a complete object $x$ is trained to be proportional to a reward $\R(x)$. If $\R(x) = P(\bY\mid x)P(x)$ then the constructor samples the Bayesian posterior. PhyloGFN's constructor starts from $N$ separate leaves and merges two lineages per step: after $N-1$ merges one tree remains. Our constructor also merges, but may additionally \emph{reticulate}: put a hybrid node above a lineage and open two parent slots that later merges will fill. After $N-1+2R$ steps one network remains.
+\clearpage
