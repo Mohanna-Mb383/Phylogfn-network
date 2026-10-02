@@ -1,0 +1,5 @@
+Last epoch R distribution
+epoch: 299
+R=0 fraction: 0.655273
+R=1 fraction: 0.343750
+R=2 fraction: 0.000977

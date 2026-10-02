@@ -1,0 +1,5 @@
+Last epoch summary
+epoch: 299
+MLL: -6730.8046875
+log_Z: -7051.87744140625
+mean_R: 0.345703125
