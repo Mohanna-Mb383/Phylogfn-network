@@ -62,116 +62,14 @@ We will publish the optimized code for parsimony analysis in the near future. In
 
 
 
-## DS1 KNN Results
+## Experimental Results
 
-We evaluated the DS1 phylogenetic-network model with **k-nearest-neighbour (KNN) candidate filtering** using `k=5`.
+Results are now organised by experiment type:
 
-The experiment used the same main DS1 network configuration as the previous network run, with KNN enabled while the other proposal components remained disabled.
-
-- Dataset: **DS1**
-- Epochs: **300**
-- Steps per epoch: **200**
-- KNN: **enabled**
-- `k = 5`
-- Final checkpoint: `checkpoint_000299.pt`
-- Final checkpoint finite: **yes**
-
-### Training diagnostics
-
-The following figure summarizes the main training diagnostics across all 300 epochs.
-
-![DS1 KNN training diagnostics](results/DS1_KNN_300ep/DS1_KNN_training_diagnostics_300ep.png)
-
-The run completed all 300 epochs. During late training, some optimizer updates produced non-finite gradients. A numerical safety guard skipped these updates to prevent corruption of the model parameters.
-
-Therefore, the current run is treated as a **completed KNN diagnostic experiment**, rather than a fully clean causal comparison with the no-KNN baseline.
-
-### Final marginal log-likelihood
-
-The three final MLL estimates were:
-
-- `-6720.01`
-- `-6729.83`
-- `-6721.95`
-
-Mean final MLL:
-
-**-6723.93 ± 5.20**
-
-The previous DS1 network run without KNN obtained approximately:
-
-**-7043.06**
-
-![DS1 KNN vs baseline MLL](results/DS1_KNN_300ep/DS1_KNN_vs_baseline_MLL.png)
-
-The raw numerical difference is approximately **+319.13 nats**.
-
-This difference should **not yet be interpreted as a clean improvement caused by KNN**, because the KNN run experienced non-finite-gradient updates during late training.
-
-### Reticulation-count behaviour
-
-The sampled reticulation-count distribution across training is shown below.
-
-![DS1 KNN reticulation distribution](results/DS1_KNN_300ep/DS1_KNN_R_distribution_300ep.png)
-
-At the final epoch, among 1024 sampled networks:
-
-| Reticulation count | Samples | Fraction |
-|---|---:|---:|
-| `R=0` | 671 | 65.53% |
-| `R=1` | 352 | 34.38% |
-| `R=2` | 1 | 0.10% |
-
-Final mean reticulation count:
-
-**mean R = 0.346**
-
-`R_MAX=2` is an experimental upper bound and should not be interpreted as a biological conclusion.
-
-### Key training metrics
-
-![DS1 KNN key metrics](results/DS1_KNN_300ep/DS1_KNN_key_metrics_300ep.png)
-
-At the final epoch:
-
-| Metric | Value |
-|---|---:|
-| MLL | `-6730.80` |
-| log Z | `-7051.88` |
-| Pearson r | `0.169` |
-| mean R | `0.346` |
-
-The relatively low final Pearson correlation indicates that convergence quality still requires investigation.
-
-### KNN candidate-quality diagnostic
-
-KNN candidate recall was evaluated before the full KNN training run.
-
-| k | Recall@5 | Approx. candidate merge pairs | Approx. legal merge pairs |
-|---:|---:|---:|---:|
-| 5 | 0.960 | 52.0 | 144.3 |
-| 10 | 1.000 | 94.0 | 144.0 |
-| 20 | 1.000 | 138.0 | 141.7 |
-
-`k=5` was selected because it retained high recall while substantially reducing the number of merge candidates scored by the pair-scoring network.
-
-The current exact-KNN implementation still computes pairwise distances when constructing the candidate set, so this result should not be interpreted as an end-to-end `O(Nk)` implementation.
-
-### Numerical-stability note
-
-During late training, some updates produced non-finite gradients.
-
-These optimizer updates were skipped by a numerical safety guard. The final checkpoint was checked and contains no NaN/Inf tensors.
-
-The exact number of skipped optimizer updates was not stored in the training history. Consequently, these results are useful for diagnosing the KNN extension, but a cleaner validation experiment is still needed before making a definitive baseline-vs-KNN performance claim.
-
-### Detailed result files
-
-- [300-epoch summary](results/DS1_KNN_300ep/DS1_knn_300ep_results.txt)
-- [Epoch-by-epoch results](results/DS1_KNN_300ep/DS1_knn_300ep_epochs.txt)
-- [Final R distribution](results/DS1_KNN_300ep/DS1_KNN_R_distribution_last_epoch.txt)
-- [Final key metrics](results/DS1_KNN_300ep/DS1_KNN_key_metrics_last_epoch.txt)
-
+- [Phylogenetic tree baseline](results/tree/DS1/README.md)
+- [Phylogenetic network](results/network/DS1/README.md)
+- [Phylogenetic network + KNN](results/network_knn/DS1/README.md)
+- [All experimental results](results/README.md)
 
 ## TODO list
 - [ ] mutigpu training 
