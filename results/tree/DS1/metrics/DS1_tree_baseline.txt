@@ -1,0 +1,19 @@
+DS1 PHYLOGENETIC TREE BASELINE
+=============================
+
+Dataset: DS1
+Model class: phylogenetic tree
+
+Published / benchmark PhyloGFN reference:
+MLL approximately -7108.4
+
+Locally reproduced tree baseline used for comparison:
+MLL approximately -7108.47
+
+Purpose:
+This value is used as the tree baseline for comparison with the
+phylogenetic-network experiments on the same DS1 dataset.
+
+Important:
+This folder currently documents the tree baseline/reference result.
+A complete epoch-by-epoch tree training log is not stored in this repository.
