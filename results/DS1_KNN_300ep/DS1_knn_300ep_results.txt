@@ -1,0 +1,135 @@
+DS1 KNN-ONLY 300-EPOCH RUN
+===========================
+
+Run directory:
+runs/20260929_192648_ds1_knn_only_300ep_final
+
+EXPERIMENT
+----------
+Dataset: DS1
+Epochs: 300
+Steps per epoch: 200
+KNN enabled: Yes
+K: 5
+
+This experiment was designed as the previous DS1 network baseline
+configuration with KNN candidate filtering enabled, while the other
+proposal components remained disabled.
+
+COMPLETION
+----------
+Completed epochs: 300
+Final epoch index: 299
+Final checkpoint: checkpoint_000299.pt
+Final checkpoint finite: YES
+
+FINAL EVALUATION MLL
+--------------------
+Individual estimates:
+[-6720.01025390625, -6729.83154296875, -6721.9462890625]
+
+Mean final MLL: -6723.929
+Sample standard deviation: 5.202
+
+FINAL EPOCH
+-----------
+Loss mean: 122557.668
+logZ: -7051.877
+MLL: -6730.805
+Pearson r: 0.169008
+Mean R: 0.345703
+R histogram: [671, 352, 1]
+Sampled log-score mean: -7038.565
+
+FINAL R DISTRIBUTION
+--------------------
+R=0: 671 / 1024 = 65.53%
+R=1: 352 / 1024 = 34.38%
+R=2: 1 / 1024 = 0.10%
+
+BEST VALUES OBSERVED IN TRAINING HISTORY
+----------------------------------------
+Best epoch MLL:
+  Epoch 268
+  MLL = -6227.470
+  Pearson r = 0.105617
+  Mean R = 0.343750
+
+Best Pearson correlation:
+  Epoch 3
+  Pearson r = 0.993928
+  MLL = -7864.019
+  Mean R = 0.004883
+
+Best sampled log-score mean:
+  Epoch 200
+  sampled_log_score_mean = -6722.070
+
+KNN DIAGNOSTIC
+--------------
+Using the previous successful DS1 checkpoint:
+
+k=5:
+  Recall@5 = 0.960
+  Candidate merge pairs ~= 52.0 / 144.3 legal pairs
+
+k=10:
+  Recall@5 = 1.000
+  Candidate merge pairs ~= 94.0 / 144.0 legal pairs
+
+k=20:
+  Recall@5 = 1.000
+  Candidate merge pairs ~= 138 / 141.7 legal pairs
+
+K=5 was therefore selected for the KNN-only training experiment.
+
+BASELINE CONTEXT
+----------------
+Previous DS1 network run without KNN:
+  Final MLL ~= -7043.1
+
+Current KNN run:
+  Mean final MLL = -6723.929
+
+Numerical difference:
+  +319.171 nats
+
+IMPORTANT:
+This numerical difference should NOT yet be interpreted as a clean
+performance gain caused by KNN.
+
+NUMERICAL-STABILITY NOTE
+------------------------
+During late training, non-finite gradients were observed.
+
+A numerical safety guard skipped optimizer updates containing NaN/Inf
+gradients so that finite model parameters were not corrupted.
+
+The run was resumed from a finite checkpoint after an earlier NaN
+failure. The RNG state was not restored bit-for-bit.
+
+The final checkpoint was checked and contains no NaN/Inf tensors.
+
+Because non-finite optimizer updates occurred, this run should currently
+be treated as a completed KNN diagnostic experiment rather than a fully
+clean causal comparison against the no-KNN baseline.
+
+Also, the final Pearson correlation was relatively low, so convergence
+quality requires further investigation.
+
+PROFILING CAVEAT
+----------------
+The existing KNN timing diagnostic constructs the KNN candidate mask
+outside the measured policy-step timing region.
+
+Therefore those timings should not be presented as an end-to-end KNN
+speedup measurement.
+
+STATUS
+------
+300 epochs completed.
+Final MLL evaluation completed.
+Final checkpoint is finite.
+Results preserved for analysis.
+No need to repeat the complete 300-epoch run from zero solely to
+reproduce these results.
