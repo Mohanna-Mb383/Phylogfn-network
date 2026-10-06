@@ -1,0 +1,73 @@
+DS2 — PhyloGFN-Net baseline (no KNN)
+====================================
+
+Run:
+20261002_184937_ds2_network_no_knn_300ep
+
+Dataset:
+DS2.pickle
+
+Model:
+PhyloGFN-Net, level-1 network
+
+KNN:
+Disabled
+
+Training:
+Epochs: 300
+Steps per epoch: 200
+GFN batch size: 64
+Best-state batch size: 64
+
+Network:
+R_MAX: 2
+LAMBDA_R: 1.0
+PRIOR_TYPE: EXP_R
+
+GFN:
+LOSS_TYPE: TB
+BACKWARD_MODELING: UNIFORM
+
+Optimization:
+LR_MODEL: 0.0001
+LR_Z: 0.01
+Transformer depth: 6
+
+Final MLL estimates:
+-26273.58984375
+-26273.830078125
+-26273.646484375
+
+Final MLL mean:
+-26273.688802083332
+
+Final MLL sample SD:
+0.12558355808723115
+
+Last epoch (299):
+MLL: -26273.66015625
+Pearson r: 0.9587745648448036
+Mean R: 2.0
+R histogram: [0, 0, 1024]
+Loss mean: 15.442889055013657
+log Z: -26180.1953125
+Temperature: 1.0
+Sampled log-score mean: -25960.55675075535
+
+Configuration audit versus historical DS1 baseline:
+182 common resolved configuration keys were compared.
+Only 3 common keys differed:
+- sequence length: DS1=1949, DS2=2520
+- derived Transformer input size: DS1=15596, DS2=20164
+- output path
+
+These are dataset-derived/runtime differences, not experimental
+hyperparameter changes.
+
+Historical DS1 seed was not recorded.
+DS2 was launched with seed=1.
+
+Important interpretation:
+The final R histogram [0,0,1024] must not be interpreted as biological
+evidence for exactly two reticulations. Under EXP_R with R_MAX=2 and
+LAMBDA_R=1, class-size/prior effects can favor R=2.
