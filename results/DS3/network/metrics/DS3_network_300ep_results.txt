@@ -1,0 +1,51 @@
+DS3 PhyloGFN-Net baseline results
+=================================
+
+Dataset: DS3
+Taxa: 36
+Sequence length: 1812 sites
+Derived Transformer input size: 14500
+
+Model: level-1 phylogenetic network
+KNN: disabled
+Branch lengths: continuous
+R_MAX: 2
+Reticulation prior: EXP_R
+LAMBDA_R: 1.0
+Loss: Trajectory Balance (TB)
+Backward policy: UNIFORM
+Seed: 1
+
+Training budget
+---------------
+Epochs: 300
+Steps per epoch: 200
+GFN batch size: 64
+Best-state batch size: 64
+Training items per epoch: 25600
+Total training items: 7680000
+Equivalent PhyloGFN budget: 24%
+
+Final MLL estimates
+-------------------
+Estimate 1: -33544.730469
+Estimate 2: -33545.726562
+Estimate 3: -33545.199219
+
+Final MLL mean: -33545.218750
+Final MLL sample SD: 0.498334
+
+Last epoch metrics
+------------------
+Epoch: 299
+Loss mean: 53.476505
+log_Z: -33422.835938
+MLL: -33545.945312
+Pearson r: 0.921566
+Mean R: 2.000000
+R histogram: [0, 0, 1024]
+Sampled log score mean: -33151.378384
+
+Interpretation note
+-------------------
+The final R histogram should not be interpreted as direct biological evidence for exactly two reticulations. R_MAX=2 is an imposed model limit, and the EXP_R prior together with topology class size can favour R=2.
