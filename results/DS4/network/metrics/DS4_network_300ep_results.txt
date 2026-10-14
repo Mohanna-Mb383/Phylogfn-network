@@ -1,0 +1,71 @@
+DS4 PhyloGFN-Net baseline results
+=================================
+
+DATASET
+-------
+Dataset: DS4
+Number of taxa: 41
+Sequence length: 1137
+Initial possible pairs: 820
+Approximate merge-path pair count: 11480
+Derived Transformer input size: 9100
+
+MODEL
+-----
+Model: PhyloGFN-Net
+Environment: ONE_STEP_LEVEL1_NETWORK
+Network class: rooted level-1
+KNN: disabled
+Branch lengths: continuous
+Likelihood: Felsenstein-based JC69 network likelihood
+R_MAX: 2
+Reticulation prior: EXP_R
+LAMBDA_R: 1.0
+Loss: Trajectory Balance (TB)
+Backward policy: UNIFORM
+Seed: 1
+
+TRAINING
+--------
+Epochs: 300
+Steps per epoch: 200
+GFN batch size: 64
+Best-state/replay batch size: 64
+Items per training step: 128
+Training items per epoch: 25600
+Total training items: 7680000
+Equivalent PhyloGFN training budget: 24%
+
+FINAL MARGINAL LOG-LIKELIHOOD
+-----------------------------
+Estimate 1: -13267.818359
+Estimate 2: -13267.598633
+Estimate 3: -13267.961914
+
+Final MLL mean: -13267.792969
+Final MLL sample SD: 0.182967
+
+LAST EPOCH
+----------
+Epoch: 299
+Loss mean: 7.832518
+log Z: -13122.359375
+MLL: -13267.845703
+Pearson r: 0.960931
+Mean R: 2.000000
+R histogram: [0, 0, 1024]
+Sampled log score mean: -12796.422047
+
+LATE-TRAINING SUMMARY (EPOCHS 200-299)
+--------------------------------------
+MLL mean: -13267.857988
+MLL sample SD: 0.490666
+Pearson mean: 0.916161
+Pearson sample SD: 0.060055
+
+INTERPRETATION NOTES
+--------------------
+The R histogram is the distribution of reticulation counts among 1024 sampled networks during evaluation.
+R=2 must not be interpreted directly as proof of exactly two biological reticulation events.
+R_MAX=2 is an imposed computational/model limit, and the EXP_R prior together with network class size can affect the distribution over R.
+Absolute MLL values should not be compared across different datasets because the alignments differ.
