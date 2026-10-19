@@ -1,0 +1,31 @@
+DS5 NETWORK BASELINE - 300 EPOCHS
+=================================
+
+Source run: /srv/scratch1/mmousabeigi/phylogfn_proposal_20260929/phylogfn/runs/20261014_163152_ds5_network_no_knn_300ep
+Dataset: DS5
+Taxa: 50
+Sequence length: 378
+KNN: disabled
+R_MAX: 2
+LAMBDA_R: 1.0
+PRIOR_TYPE: EXP_R
+Epochs: 300
+Steps per epoch: 200
+Seed: 1
+
+Final MLL estimates:
+  estimate 1: -8173.3515625000
+  estimate 2: -8173.5009765625
+  estimate 3: -8173.5004882812
+
+Final MLL mean: -8173.4510091146
+Final MLL sample SD: 0.0861236406
+
+Final epoch:
+  loss: 3.9211959058
+  logZ: -7986.0717773438
+  MLL: -8173.3129882812
+  Pearson r: 0.9803864525
+  mean R: 2.0000000000
+  R histogram [R=0,R=1,R=2]: [0, 0, 1024]
+  sampled log score: -7677.8437462803
