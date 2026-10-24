@@ -1,0 +1,35 @@
+DS6 NETWORK BASELINE — 300 EPOCHS — NO KNN
+============================================================
+
+Run directory: /srv/scratch1/mmousabeigi/phylogfn_proposal_20260929/phylogfn/runs/20261019_185203_ds6_network_no_knn_300ep
+History epochs: 300
+
+FINAL MLL ESTIMATES
+----------------------------------------
+Estimate 1: -6715.620117187500
+Estimate 2: -6716.107421875000
+Estimate 3: -6715.859375000000
+
+Final MLL mean: -6715.862304687500
+Final MLL sample SD: 0.243665553406
+
+EPOCH 299
+----------------------------------------
+Loss mean: 6.806073021889
+Learned logZ: -6529.500976562500
+Temperature: 1.000000000000
+Raw MLL: -6715.926757812500
+Pearson r: 0.971808643042
+Mean R: 2.000000000000
+R histogram: [0, 0, 1024]
+Sampled log-score mean: -6061.319094573261
+
+GRAPH-CORRECTION NOTE
+----------------------------------------
+Epoch 299 has R histogram [0, 0, 1024], so every evaluation sample at that epoch has R=2.
+R=2 slot-to-graph correction = -2 ln(2) = -1.386294361120
+Epoch-299 corrected MLL = -6717.313052173620
+
+For the three final MLL estimates, the corresponding corrected mean would be:
+-6717.248599048620
+ONLY IF the final evaluation samples are also all R=2. The final_mlls.p file itself does not record the R histogram, so this final correction is conditional/inferred rather than directly verified here.
