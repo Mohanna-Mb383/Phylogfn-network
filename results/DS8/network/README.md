@@ -36,10 +36,24 @@ Training completed all 300 epochs. The last-epoch Pearson correlation was approx
 
 All 1,024 samples in the last-epoch reticulation histogram had R=2. This is the configured maximum reticulation count and does not establish that the underlying biological history contains exactly two reticulations.
 
-A sampled-network visualization and its numerical edge-parameter table have not yet been validated for DS8. They are intentionally not included here.
+The selected maximum-log-score network is available in `figures/DS8_network_radial_v3_annotated.png`, with numerical edge parameters in `metrics/DS8_network_radial_v3_edges.txt`. The figure uses a NetworkX layout, not a true radial layout.
 
 ## Provenance
 
 Original server run:
 
 `runs/20261030_225455_ds8_network_no_knn_300ep_lowmem/`
+
+
+## Additional Diagnostic Figures
+
+- `DS8_MLL_last100_epochs.png`
+- `DS8_Pearson_last100_epochs.png`
+- `DS8_R_distribution_300ep.png` — aggregate R histogram over 300 epochs
+- `DS8_R_over_epochs_300ep.png`
+- `DS8_final_MLL_estimates.png`
+- `DS8_logZ_curve_300ep.png`
+- `DS8_loss_curve_300ep.png`
+- `DS8_sampled_log_score_300ep.png`
+
+All figures use the original DS8 training history or final evaluation estimates.
