@@ -246,6 +246,34 @@ _C.ENV.NETWORK.R_MAX = 2            # at most R_MAX reticulation nodes per netwo
 _C.ENV.NETWORK.LAMBDA_R = 1.0       # prior p(G) proportional to exp(-LAMBDA_R * R(G))
 _C.ENV.NETWORK.PRIOR_TYPE = 'EXP_R' # 'EXP_R': p(G) ∝ exp(-λR) over the class; 'UNIFORM_R': p(R) ∝ exp(-λR), uniform within each R
 
+# ---- PhyloGFN-Net: objectives and policy features after da Silva et al. (ICLR 2025) (new; all off by default) ----
+_C.GFN.NET_LOSS = 'TB'              # network generator only: 'TB' (unchanged PhyloGFN objective) | 'DB' (detailed balance,
+                                    # per-trajectory mean of squared transition residuals, Eq. 1 of the paper) | 'WDB' (weighted
+                                    # detailed balance, Eq. 5-6: sum_t gamma_t e_t^2 / sum_t gamma_t per trajectory)
+_C.GFN.WDB_GAMMA = 'logcount'       # weight gamma(s, s') of the transition into s' for NET_LOSS = 'WDB':
+                                    #   'count'     : 1 / #D^topo(s')  (the paper's choice; #D^topo = number of slot-labelled
+                                    #                 level-1 completions, exact for states without open reticulations,
+                                    #                 an upper bound otherwise; dynamic range exp(89) at N = 27: early
+                                    #                 transitions get weight 0 in floating point)
+                                    #   'sqrtcount' : 1 / sqrt(#D^topo)  (paper, Fig. 12, gamma_1)
+                                    #   'logcount'  : 1 / (1 + log #D^topo)  (strictly decreasing in #D, range 1 .. 1/90 at N = 27)
+                                    #   'depth'     : 1 / (1 + (lineages of s') - 1) = 1 / (1 + remaining merges): a depth-based
+                                    #                 heuristic (paper, App. E.4), NOT a function of #D^topo (it ignores the
+                                    #                 reticulations still allowed)
+                                    #   'uniform'   : 1  (equals DB)
+_C.GFN.MODEL.FLOW_HEAD = CfgNode()  # log F(s) = MLP(summary token) + log Z (global offset), used by DB / WDB
+_C.GFN.MODEL.FLOW_HEAD.INPUT_SIZE = 128
+_C.GFN.MODEL.FLOW_HEAD.HIDDEN_SIZE = 256
+_C.GFN.MODEL.FLOW_HEAD.OUTPUT_SIZE = 1
+_C.GFN.MODEL.FLOW_HEAD.LAYERS = 2
+_C.GFN.MODEL.FLOW_HEAD.DROPOUT = 0.0
+_C.GFN.MODEL.FLOW_HEAD.ACT_FN = 'RELU'
+_C.GFN.MODEL.LOOKAHEAD = CfgNode()  # look-ahead policy (paper Eq. 7): the pair / single heads also receive the embedding of the
+_C.GFN.MODEL.LOOKAHEAD.ENABLED = False      # prospective child's new lineage(s) and the child's aggregated token embedding
+_C.GFN.MODEL.LOOKAHEAD.B_HAT = 0.1          # branch length used to form the prospective child's features (continuous parameters
+_C.GFN.MODEL.LOOKAHEAD.THETA_HAT = 0.5      # are sampled after the discrete action); theta used for RETICULATE children
+_C.GFN.MODEL.LOOKAHEAD.DETACH = True        # child embeddings are computed with the current embedding weights but not back-propagated
+
 _C.ENV.EVOLUTION_MODEL = CfgNode()
 _C.ENV.EVOLUTION_MODEL.COMPUTE_PRIOR = True
 _C.ENV.EVOLUTION_MODEL.PRIOR_LAMBDA = 10.0
@@ -259,6 +287,7 @@ _C.LOGGING.TB_NAME = 'tb_logs'
 
 # Full experiment
 _C.OUTPUT_PATH = ''
+_C.SEED = -1                        # written by train_net.py --seed=<s> for provenance; -1 = the run was not seeded
 
 
 def get_cfg_defaults():
