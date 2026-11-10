@@ -60,6 +60,7 @@ class MergeEdgeModel(nn.Module):
         return edge_actions, log_pf
 
 
+
 class ReticulationModel(nn.Module):
 
     def __init__(self, ret_cfg):
@@ -78,8 +79,16 @@ class ReticulationModel(nn.Module):
         mean_b = (torch.tanh(mean[..., 0]) + 1) / 2 * 10 - 10                    # log b in [-10, 0]
         mean_t = torch.tanh(mean[..., 1]) * self.logit_range                     # logit theta in [-r, r]
         mean = torch.stack([mean_b, mean_t], dim=-1)
-        std = out[:, 3 * K:].exp().reshape(-1, K, 2) + 1e-3
-        return MixtureSameFamily(Categorical(logits=mix), Independent(Normal(mean, std), 1))
+        raw_std = out[:, 3 * K:].reshape(-1, K, 2)
+        # Numerical guard: exp(log_std) is unchanged in the normal regime,
+        # but pathological positive log-std values are capped before exponentiation.
+        # exp(20) ~= 4.85e8, already far wider than the bounded transformed
+        # reticulation action domain.
+        std = raw_std.clamp(max=20.0).exp() + 1e-3
+        return MixtureSameFamily(
+            Categorical(logits=mix),
+            Independent(Normal(mean, std), 1),
+        )
 
     def forward(self, summary_reps, lineage_reps, input_ret_actions=None):
         """returns b_hx [B], theta [B], log_paths_pf [B]"""
