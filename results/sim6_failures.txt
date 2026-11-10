@@ -1,0 +1,8 @@
+=== sim6 safe resume started: Mon Nov  9 12:37:12 WET 2026 ===
+Mon Nov  9 12:54:52 WET 2026 TRAIN_FAILED variant=wdb_logcount seed=2
+Mon Nov  9 13:24:11 WET 2026 TRAIN_FAILED variant=wdb_logcount seed=3
+Mon Nov  9 13:33:22 WET 2026 TRAIN_FAILED variant=wdb_count seed=1
+Mon Nov  9 15:01:55 WET 2026 TRAIN_FAILED variant=wdb_count seed=3
+Mon Nov  9 15:21:45 WET 2026 TRAIN_FAILED variant=wdb_depth seed=1
+Tue Nov 10 00:13:20 WET 2026 TRAIN_FAILED variant=wdb_logcount_la seed=3
+=== sim6 safe resume finished: Tue Nov 10 00:13:22 WET 2026 ===
