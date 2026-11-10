@@ -45,7 +45,7 @@ class MixtureGaussianModel(nn.Module):
             if self.mixture_cfg.USE_SOFT_PLUS:
                 var = self.soft_plus(var_) + 0.001
             else:
-                var = var_.exp()
+                var = var_.clamp(max=20.0).exp()
             dist = MixtureSameFamily(  # gaussian mixture model in 1D
                 Categorical(logits=mixture_logits),
                 Normal(mean, var),
@@ -59,7 +59,7 @@ class MixtureGaussianModel(nn.Module):
             if self.mixture_cfg.USE_SOFT_PLUS:
                 var = self.soft_plus(var_).reshape(-1, self.nb_components, 2) + 0.001
             else:
-                var = var_.exp().reshape(-1, self.nb_components, 2)
+                var = var_.clamp(max=20.0).exp().reshape(-1, self.nb_components, 2)
             dist = MixtureSameFamily(
                 Categorical(logits=mixture_logits),
                 Independent(Normal(mean, var), 1),
