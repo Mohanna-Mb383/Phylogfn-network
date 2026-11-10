@@ -40,7 +40,18 @@ class TBGFlowNetNet(torch.nn.Module):
         self._Z = torch.nn.Parameter(torch.ones(256, device=device) * init_Z / 256, requires_grad=gfn_model_cfg.UPDATE_Z)
         self.to(device)
 
-        model_params = list(self.net_model.parameters()) + list(self.edges_model.parameters()) + list(self.ret_model.parameters())
+        # objectives and policy features after da Silva et al. (ICLR 2025); 'TB' reproduces the original behaviour
+        self.net_loss = gfn_cfg.NET_LOSS
+        assert self.net_loss in ('TB', 'DB', 'WDB'), self.net_loss
+        self.wdb_gamma = gfn_cfg.WDB_GAMMA
+        self.lookahead_cfg = gfn_model_cfg.LOOKAHEAD
+
+        # the flow head (log F(s)) is trained by DB / WDB only; under TB it is left out of the optimiser and of the
+        # gradient-clipping list, so the optimiser state, the clipping and the reported parameter norm are those of the
+        # original code (tools/regression_vs_baseline.py)
+        flow_ids = {id(p) for p in self.net_model.flow_head.parameters()}
+        net_params = [p for p in self.net_model.parameters() if self.net_loss != 'TB' or id(p) not in flow_ids]
+        model_params = net_params + list(self.edges_model.parameters()) + list(self.ret_model.parameters())
         params = [{'params': model_params, 'lr': gfn_model_cfg.LR_MODEL}]
         if gfn_model_cfg.UPDATE_Z:
             params.append({'params': [self._Z], 'lr': gfn_model_cfg.LR_Z})
@@ -56,8 +67,19 @@ class TBGFlowNetNet(torch.nn.Module):
         return self._Z.sum()
 
     def log_Z(self, scale_key=None):
-        with torch.no_grad():
-            return self.compute_log_Z().item()
+        if self.net_loss == 'TB':
+            with torch.no_grad():
+                return self.compute_log_Z().item()
+        # DB / WDB: the flow of the initial state plays the role of Z.  The forward pass samples an action, so it is
+        # run on forked generators: a progress-bar read-out must not change the training random stream.
+        devices = [self.device] if str(self.device).startswith('cuda') else []
+        with torch.no_grad(), torch.random.fork_rng(devices=devices):
+            env = self.env
+            s0 = env.get_initial_state()
+            feats = env.initial_features(1)
+            inp = env.prepare_rollout_inputs(feats, [s0], None)
+            inp['need_log_flow'] = True
+            return self.forward(inp)['log_flow'][0].item()
 
     def grad_norm(self, *_):
         return math.sqrt(sum(p.grad.norm().item() ** 2 for p in self.gradient_clipping_params if p.grad is not None))
@@ -70,8 +92,18 @@ class TBGFlowNetNet(torch.nn.Module):
 
     def load(self, path):
         d = torch.load(path, map_location='cpu')
-        self.load_state_dict(d['generator_state_dict'])
-        self.opt.load_state_dict(d['opt_state_dict'])
+        # checkpoints written before the flow head existed (TB runs of the baseline code) lack its parameters:
+        # accept them (the flow head is untrained and unused by TB); refuse any other mismatch
+        missing, unexpected = self.load_state_dict(d['generator_state_dict'], strict=False)
+        bad = [k for k in missing if not k.startswith('net_model.flow_head.')] + list(unexpected)
+        if bad:
+            raise RuntimeError('checkpoint does not match the model: %s' % bad)
+        try:
+            self.opt.load_state_dict(d['opt_state_dict'])
+        except (ValueError, KeyError) as exc:          # optimiser state of a model without the flow head
+            if not missing:
+                raise
+            print('warning: optimiser state not loaded (%s); fine for evaluation, not for resuming training' % exc)
 
     # ------------------------------------------------------------------ one policy step
     def forward(self, input_dict):
@@ -97,6 +129,18 @@ class TBGFlowNetNet(torch.nn.Module):
                     ret_given[k] = torch.tensor([a['edge_action'], a['theta']], device=dev)
         input_dict = dict(input_dict)
         input_dict['input_action_ids'] = ids
+        if self.lookahead_cfg.ENABLED:
+            la = self.lookahead_cfg
+            if la.DETACH:
+                with torch.no_grad():
+                    pe, se = env.lookahead_child_embeddings(input_dict['feats'], input_dict['states'], self.net_model.embed_tokens,
+                                                            la.B_HAT, la.THETA_HAT)
+            else:
+                pe, se = env.lookahead_child_embeddings(input_dict['feats'], input_dict['states'], self.net_model.embed_tokens,
+                                                        la.B_HAT, la.THETA_HAT)
+            input_dict['child_pair_emb'] = pe
+            input_dict['child_single_emb'] = se
+            input_dict['lookahead_detach'] = bool(la.DETACH)
         ret = self.net_model(**input_dict)
         actions = ret['actions']
         log_pf = ret['log_paths_pf']
@@ -127,15 +171,46 @@ class TBGFlowNetNet(torch.nn.Module):
             b_np, t_np = b_hx.detach().cpu().numpy(), theta.detach().cpu().numpy()
             for t, k in enumerate(sel.tolist()):
                 out_actions[k] = {'type': 'ret', 'lineage': int(lineage[t]), 'theta': float(t_np[t]), 'edge_action': float(b_np[t])}
-        return {'actions': out_actions, 'log_paths_pf': log_pf, 'logits': ret['logits']}
+        log_flow = ret['log_flow']                       # None unless the flow head was evaluated (DB / WDB, or need_log_flow)
+        if log_flow is not None:
+            log_flow = log_flow + self.compute_log_Z().to(log_flow)
+        return {'actions': out_actions, 'log_paths_pf': log_pf, 'logits': ret['logits'], 'log_flow': log_flow}
 
     # ------------------------------------------------------------------ TB loss
     def get_loss_from_rollout_outputs(self, rollout_outputs):
-        log_pf = rollout_outputs['log_pf']              # [n_traj] already summed over steps
-        log_pb = rollout_outputs['log_pb']
-        log_rewards = rollout_outputs['log_rewards']
-        log_z = self.compute_log_Z().reshape(-1).to(log_pf)
-        return self.loss_fn(log_z + log_pf, log_rewards + log_pb)
+        if self.net_loss == 'TB':
+            log_pf = rollout_outputs['log_pf']              # [n_traj] already summed over steps
+            log_pb = rollout_outputs['log_pb']
+            log_rewards = rollout_outputs['log_rewards']
+            log_z = self.compute_log_Z().reshape(-1).to(log_pf)
+            return self.loss_fn(log_z + log_pf, log_rewards + log_pb)
+        return self.db_loss(rollout_outputs)
+
+    def transition_residuals(self, rollout_outputs):
+        """e_t = log F(s_t) + log P_F(s_{t+1}|s_t) - log F(s_{t+1}) - log P_B(s_t|s_{t+1}) for every recorded transition,
+        with F(x) = R(x) hard-wired at terminal states (log_rewards).  returns e [B, T], mask [B, T], gamma [B, T]."""
+        lpf = rollout_outputs['step_log_pf']            # [B, T]  log P_F(s_{t+1} | s_t), with grad
+        lF = rollout_outputs['step_log_flow']           # [B, T]  log F(s_t), with grad
+        lpb = rollout_outputs['step_log_pb'].to(lpf)    # [B, T]  log P_B(s_t | s_{t+1})
+        mask = rollout_outputs['step_mask'].to(lpf)     # [B, T]  1 for recorded transitions
+        is_last = rollout_outputs['step_is_last'].to(lpf)
+        log_r = rollout_outputs['log_rewards'].to(lpf)  # [B]
+        lF_next = torch.cat([lF[:, 1:], torch.zeros_like(lF[:, :1])], dim=1)
+        lF_next = torch.where(is_last > 0, log_r.unsqueeze(1).expand_as(lF_next), lF_next)
+        e = (lF + lpf - lF_next - lpb) * mask
+        # gamma is kept in float64: the 'count' weights reach exp(-90) (DS1) .. exp(-259) (DS8) at the root, below the
+        # float32 subnormal range (1e-45) for N >= 29; in float64 they are representable (min normal 2e-308).  Their
+        # share of the normalised loss is still 1e-40 .. 1e-113: a negligible gradient, which is why 'count' is not
+        # the default at DS scale (see src/configs/defaults.py).
+        gamma = rollout_outputs['step_gamma'].to(lpf.device, torch.float64) * mask.double() if self.net_loss == 'WDB' else mask.double()
+        return e, mask, gamma
+
+    def db_loss(self, rollout_outputs):
+        """DB  (paper Eq. 1): per-trajectory mean of e_t^2;  WDB (paper Eq. 5-6): per-trajectory sum_t gamma_t e_t^2 / sum_t gamma_t
+        (accumulated in float64), then the mean over the batch, returned in the model's dtype."""
+        e, mask, gamma = self.transition_residuals(rollout_outputs)
+        per_traj = (gamma * e.double() ** 2).sum(1) / gamma.sum(1).clamp_min(1e-300)
+        return per_traj.mean().to(e.dtype)
 
     def accumulate_loss(self, rollout_outputs, factor=1.0):
         loss = self.get_loss_from_rollout_outputs(rollout_outputs) / factor
