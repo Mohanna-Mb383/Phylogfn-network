@@ -2,7 +2,7 @@
 Train PhyloGFN-Net (level-1 phylogenetic networks) -- the network counterpart of train.py.
 
 Usage:
-    train_net.py <cfg_path> <sequences_path> <output_path> [--quiet] [--device=<dev>]
+    train_net.py <cfg_path> <sequences_path> <output_path> [--quiet] [--device=<dev>] [--seed=<s>]
 
 Options:
     <cfg_path>          config path (see src/configs/network_cfgs/)
@@ -10,15 +10,26 @@ Options:
     <output_path>       output folder
     --device=<dev>      'cuda' or 'cpu' [default: cpu]
     --quiet             no progress bar
+    --seed=<s>          seed python `random`, numpy and torch (CPU and CUDA) before anything is built; the seed is
+                        written to config.yaml (SEED).  Without this option the run is unseeded, as in the original
+                        script (the baseline DS runs were made without it).  CPU runs with the same seed are
+                        bit-reproducible; CUDA runs are not (index_add_ / scatter kernels are non-deterministic).
 
 Kept from train.py: epsilon-greedy exploration schedule, reward-temperature annealing
 (with the log Z rescaling trick), replay buffer of best networks, checkpoints, MLL and
 Pearson-r evaluation.  Removed: DDP / AMP (single device prototype).
+
+Objectives (GFN.NET_LOSS): TB (original), DB and WDB (da Silva et al., ICLR 2025, Eq. 1 and 5-6; the rollout
+then records per-transition quantities and the generator's flow head is trained).  GFN.MODEL.LOOKAHEAD.ENABLED
+adds the look-ahead child embeddings of Eq. 7 to the action heads.  With DB / WDB the temperature trick rescales
+the global offset of log F (the Z parameter), not the state-dependent part of the flow head.
 """
 import os
 import pickle
 import datetime
 import shutil
+import random
+import time
 import numpy as np
 import torch
 from tqdm import tqdm
@@ -31,6 +42,17 @@ from src.gfn.build import build_gfn
 from src.gfn.rollout_worker_net import RolloutWorkerNet
 from src.gfn.training_data_loader_net import TrainingDataLoaderNet
 from src.gfn.gfn_evaluator_net import GFNEvaluatorNet
+
+
+def set_seed(seed):
+    """seed every generator the training code draws from: python `random` (env.sample, replay buffer, evaluator),
+    numpy (edge noise), torch CPU (model init, Categorical / mixture sampling, epsilon flags) and torch CUDA."""
+    seed = int(seed)
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    return seed
 
 
 def generate_exploration_spec(exploration_cfg, epoch):
@@ -60,14 +82,17 @@ def train(cfg, sequences_path, output_path, device='cpu', verbose=True):
     env = build_env(cfg, all_seqs)
     env.to(device)
     generator = build_gfn(cfg, env, device, ddp=False)
-    rollout_worker = RolloutWorkerNet(env)
+    rollout_worker = RolloutWorkerNet(env, record_steps=(cfg.GFN.NET_LOSS != 'TB'), wdb_gamma=cfg.GFN.WDB_GAMMA)
     data_loader = TrainingDataLoaderNet(cfg, env, rollout_worker, os.path.join(output_path, 'best_networks.pt'))
     evaluator = GFNEvaluatorNet(cfg.GFN.MODEL.EVALUATION, rollout_worker, generator, verbose=verbose)
 
     training_cfg = cfg.GFN.TRAINING_DATA_LOADER
     t_cfg = training_cfg.TEMPERATURE_ANNEALING
     history = []
+    t_start = time.time()
+    train_time = 0.0            # cumulative seconds spent in the training loop (rollouts + updates), excluding evaluation
     for epoch in range(training_cfg.EPOCHS_NUM):
+        t_epoch = time.time()
         if t_cfg.TEMPERATURE_ANNEALING:
             temperature = current_temperature(t_cfg, epoch)
             if temperature != env.reward_fn.scale:
@@ -95,11 +120,16 @@ def train(cfg, sequences_path, output_path, device='cpu', verbose=True):
             bar.close()
         if generator.loss != 0:
             generator.update_model()
-        generator.save(os.path.join(output_path, 'checkpoints', 'checkpoint_%06d.pt' % epoch))
+        train_time += time.time() - t_epoch
+        ckpt = os.path.join(output_path, 'checkpoints', 'checkpoint_%06d.pt' % epoch)
+        generator.save(ckpt)
         if data_loader.best_state_batch_size > 0:
             pickle.dump(data_loader.best, open(data_loader.best_path, 'wb'))
+        # wall-clock bookkeeping for time-resolved endpoints (tools/auc_endpoints.py): train_time_s excludes the
+        # evaluation below and the checkpoint write, elapsed_s is the total since the start of train()
         record = {'epoch': epoch, 'loss_mean': float(np.mean(losses)) if losses else None, 'log_Z': generator.log_Z(),
-                  'temperature': env.reward_fn.scale}
+                  'temperature': env.reward_fn.scale, 'checkpoint': os.path.basename(ckpt),
+                  'epoch_time_s': time.time() - t_epoch, 'train_time_s': train_time, 'elapsed_s': time.time() - t_start}
         if epoch % cfg.GFN.MODEL.EVALUATION.EVALUATION_FREQ == 0:
             ev = evaluator.evaluate_gfn_quality(True)
             record.update({'mll': ev['mll'], 'pearsonr': ev['log_pearsonr'], 'mean_R': ev['mean_R'],
@@ -112,15 +142,19 @@ def train(cfg, sequences_path, output_path, device='cpu', verbose=True):
     final = [evaluator.evaluate_marginal_likelihood(1024)[0] for _ in range(3)]
     print('Final MLL: mean {:.3f} std {:.3f}'.format(np.mean(final), np.std(final)))
     pickle.dump(final, open(os.path.join(output_path, 'final_mlls.p'), 'wb'))
+    print('training time {:.0f} s, total {:.0f} s'.format(train_time, time.time() - t_start))
     return history
 
 
 if __name__ == '__main__':
     args = docopt(__doc__)
+    seed = set_seed(args['--seed']) if args['--seed'] is not None else None
     all_seqs = load_sequences(args['<sequences_path>'])
     cfg = get_cfg_defaults()
     cfg.merge_from_file(args['<cfg_path>'])
     cfg = correct_cfg_data(all_seqs, 1, cfg)
+    if seed is not None:
+        cfg.SEED = seed
     out = args['<output_path>']
     parts = out.split(os.path.sep)
     parts[-1] = datetime.datetime.now().strftime('%Y%m%d_%H%M%S') + '_' + parts[-1]
