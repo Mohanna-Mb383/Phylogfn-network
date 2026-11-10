@@ -49,6 +49,7 @@ from torch import nn
 from src.env.trajectory import Trajectory, SimpleTrajectory
 from src.utils.evolution_model_torch import EvolutionModelTorch
 from src.env.binary_tree_env_one_step_likelihood import CHARACTERS_MAPS, PhyloTreeReward
+from src.utils.level1_counts import level1_count
 
 
 # ----------------------------------------------------------------------------------
@@ -271,6 +272,19 @@ class PhyloNetworkEnv(nn.Module):
         self.parsimony_problem = False
         self.normalize_features = cfg.GFN.NORMALIZE_LIKELIHOOD
         self.type = cfg.ENV.ENVIRONMENT_TYPE
+        # log #D^topo(n, r) = log sum_{k<=r} 2^k r(n, k): number of slot-labelled level-1 completions of a state with
+        # n closed lineages and r reticulations still allowed (exact for closed states; with bare slots counted as
+        # lineages it is an upper bound for states with open reticulations).  Used by the WDB weights.
+        self.log_topo_descendants_table = {}
+        for n in range(1, self.l_max + 1):
+            for r in range(0, self.r_max + 1):
+                terms = []
+                for k in range(0, r + 1):
+                    cnt = level1_count(n, k) if n >= 1 else 0
+                    if cnt > 0:
+                        terms.append(k * math.log(2.0) + math.log(cnt))
+                mx = max(terms)
+                self.log_topo_descendants_table[(n, r)] = mx + math.log(sum(math.exp(t - mx) for t in terms))
 
     # ------------------------------------------------------------------ basics
     def seq2array(self, seq):
@@ -531,6 +545,8 @@ class PhyloNetworkEnv(nn.Module):
         }
         if input_actions is not None:
             input_dict['input_actions'] = input_actions
+        input_dict['feats'] = feats                                   # references for the look-ahead child embeddings
+        input_dict['states'] = states
         return input_dict
 
     # ------------------------------------------------------------------ random rollouts
@@ -612,6 +628,126 @@ class PhyloNetworkEnv(nn.Module):
             net.update_log_score(float(score))
             nets.append(net)
         return nets
+
+    # ------------------------------------------------------------------ WDB weights (da Silva et al. 2025, Eq. 5-6)
+    def log_topo_descendants(self, state):
+        """log of the number of slot-labelled level-1 terminal objects reachable from `state`, counting bare slots as
+        lineages (exact when no reticulation is open, an upper bound otherwise); 0 for a terminal state."""
+        if state.is_done:
+            return 0.0
+        n = len(state.lineages)
+        r = self.r_max - state.n_ret
+        return self.log_topo_descendants_table[(n, r)]
+
+    def transition_weight(self, child_state, kind):
+        """gamma(s, s') for the transition INTO child_state (WDB_GAMMA option `kind`)."""
+        if kind == 'uniform':
+            return 1.0
+        logD = self.log_topo_descendants(child_state)
+        if kind == 'count':
+            return math.exp(-logD)
+        if kind == 'sqrtcount':
+            return math.exp(-0.5 * logD)
+        if kind == 'logcount':
+            return 1.0 / (1.0 + logD)
+        if kind == 'depth':
+            return 1.0 / (1.0 + max(0, len(child_state.lineages) - 1))
+        raise ValueError('unknown WDB_GAMMA %s' % kind)
+
+    # ------------------------------------------------------------------ look-ahead child embeddings (da Silva et al. 2025, Eq. 7)
+    def _normalise_tokens(self, f):
+        """f: [k, 2, m, c] float64 -> [k, 2mc] float32 in the convention of prepare_rollout_inputs"""
+        if self.normalize_features:
+            x = f / f.sum(-1, keepdim=True)
+            x = x.float()
+            x[torch.isnan(x)] = 1.0 / self.c
+        else:
+            x = f.float()
+        return x.reshape(f.shape[0], -1)
+
+    def lookahead_child_embeddings(self, feats, states, embed_fn, b_hat, theta_hat):
+        """For every legal MERGE pair and every legal RETICULATE lineage of every state, the embedding of the
+        prospective child's NEW lineage(s), formed with branch length b_hat (both merge edges, non-root formula;
+        h -> child edge for RETICULATE) and inheritance weight theta_hat, in the token format of
+        prepare_rollout_inputs (features A, B per site-normalised, four flags), embedded with `embed_fn`.
+
+        returns pair_emb [B, n_pairs, E] (zeros for illegal / padded pairs) and single_emb [B, l_max, E]
+        (sum of the two bare-slot embeddings; zeros where RETICULATE is illegal)."""
+        B = feats.shape[0]
+        dt, dev = feats.dtype, feats.device
+        b = torch.tensor([b_hat], dtype=dt, device=dev)
+        M = self.evolution_model.get_transition_matrices(b)[0]                     # [c, c]
+        pl = torch.exp(self.evolution_model.compute_log_prior_p(b) / self.m)[0]
+        pair_out, single_out = [], []
+        E = None
+        for k, s in enumerate(states):
+            L = s.lineages
+            n = len(L)
+            f = feats[k]                                                           # [l_max, 2, m, c]
+            TA = torch.einsum('lmv,vc->lmc', f[:n, 0], M) * pl                      # transported A
+            TB = torch.einsum('lmv,vc->lmc', f[:n, 1], M) * pl                      # transported B
+            flags = torch.zeros(n, 4, dtype=torch.float32, device=dev)
+            for i, l in enumerate(L):
+                if l.open_h is not None:
+                    flags[i, 0] = 1.0
+                    flags[i, 1] = 1.0 if l.is_bare else 0.0
+                    side = l.slot if l.is_bare else (0 if l.open_h.tokens <= l.tokens else 1)
+                    flags[i, 2] = float(side)
+                    flags[i, 3] = l.open_h.theta if side == 0 else 1.0 - l.open_h.theta
+            # ---- merges
+            rows, cols, cases, pidx = [], [], [], []
+            for i in range(n):
+                for j in range(i + 1, n):
+                    if self.merge_legal(L[i], L[j]):
+                        rows.append(i); cols.append(j); cases.append(self.merge_case(L[i], L[j])); pidx.append(self.pair_index[(i, j)])
+            if rows:
+                ri = torch.tensor(rows, device=dev); ci = torch.tensor(cols, device=dev)
+                cs = torch.tensor(cases, device=dev)
+                AA = TA[ri] * TA[ci]
+                wA = AA.clone()
+                wA[cs == 3] = (TA[ri] * TB[ci] + TB[ri] * TA[ci])[cs == 3]
+                wB = AA.clone()
+                wB[cs == 1] = (TB[ri] * TA[ci])[cs == 1]
+                wB[cs == 2] = (TA[ri] * TB[ci])[cs == 2]
+                wB[cs == 3] = wA[cs == 3]
+                child = torch.stack([wA, wB], dim=1)                                  # [P, 2, m, c]
+                cflags = torch.zeros(len(rows), 4, dtype=torch.float32, device=dev)
+                open_side = torch.where(cs == 1, ri, ci)
+                carries = (cs == 1) | (cs == 2)
+                cflags[carries, 0] = 1.0
+                cflags[carries, 2] = flags[open_side[carries], 2]
+                cflags[carries, 3] = flags[open_side[carries], 3]
+                tok = torch.cat([self._normalise_tokens(child), cflags], dim=1)         # [P, 2mc + 4]
+                emb = embed_fn(tok)                                                     # [P, E]
+                E = emb.shape[1]
+                pe = torch.zeros(self.n_pairs, E, dtype=emb.dtype, device=dev)
+                pe[torch.tensor(pidx, device=dev)] = emb
+            else:
+                pe = None
+            # ---- reticulations
+            n_free = sum(1 for l in L if l.open_h is None)
+            legal_single = [i for i in range(n) if L[i].open_h is None] if (s.n_ret < self.r_max and n_free >= 2 and not s.is_done) else []
+            if legal_single:
+                li = torch.tensor(legal_single, device=dev)
+                Lh = TA[li]                                                             # [S, m, c] (feature at h, prior folded)
+                ones = torch.ones_like(Lh)
+                p1 = torch.stack([theta_hat * Lh, ones], dim=1)
+                p2 = torch.stack([(1.0 - theta_hat) * Lh, ones], dim=1)
+                f1 = torch.tensor([[1.0, 1.0, 0.0, theta_hat]], dtype=torch.float32, device=dev).expand(len(legal_single), 4)
+                f2 = torch.tensor([[1.0, 1.0, 1.0, 1.0 - theta_hat]], dtype=torch.float32, device=dev).expand(len(legal_single), 4)
+                e1 = embed_fn(torch.cat([self._normalise_tokens(p1), f1], dim=1))
+                e2 = embed_fn(torch.cat([self._normalise_tokens(p2), f2], dim=1))
+                E = e1.shape[1]
+                se = torch.zeros(self.l_max, E, dtype=e1.dtype, device=dev)
+                se[li] = e1 + e2
+            else:
+                se = None
+            pair_out.append(pe); single_out.append(se)
+        if E is None:
+            E = embed_fn(torch.zeros(1, 2 * self.m * self.c + 4, dtype=torch.float32, device=dev)).shape[1]
+        pair_emb = torch.stack([p if p is not None else torch.zeros(self.n_pairs, E, device=dev) for p in pair_out])
+        single_emb = torch.stack([q if q is not None else torch.zeros(self.l_max, E, device=dev) for q in single_out])
+        return pair_emb, single_emb
 
     # ------------------------------------------------------------------ backward sampling
     def sample_backward_from_network(self, net):
