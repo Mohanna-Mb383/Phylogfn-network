@@ -160,7 +160,19 @@ conda install anaconda::docopt
 conda install etetoolkit::ete3
 conda install matplotlib tqdm dill fvcore iopath docopt
 ```
+## Original PhyloGFN — Tree Baseline
 
+The following results and usage instructions belong to
+the original tree-based PhyloGFN model.
+
+They are included as baseline information for comparison
+with our PhyloGFN-Net implementation.
+
+The tree model uses `train.py`, while the network model
+uses `train_net.py`.
+
+The DS1–DS8 MLL values shown below are tree-baseline
+results, not PhyloGFN-Net results.
 ## Usage
 Our latest progress with continuous branch lengths modeling is implemented. To train a phyogfn model
 
