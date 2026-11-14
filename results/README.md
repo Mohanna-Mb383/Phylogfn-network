@@ -108,3 +108,9 @@ phylogenetic-network experiments on the same DS1 dataset.
 Important:
 This folder currently documents the tree baseline/reference result.
 A complete epoch-by-epoch tree training log is not stored in this repository.
+
+
+## Paper-method diagnostics
+
+- [DS1 complete TB baseline](DS1/paper_methods/README.md)
+- [sim6 revised comparison figures](sim6/figures/README.md)
