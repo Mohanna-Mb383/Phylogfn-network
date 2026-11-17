@@ -103,3 +103,7 @@ The resumed 55 epochs required `36,734 s` training time and `39,998 s` total tim
 ### Complete DB experiment report
 
 The complete DS1 DB experiment, numerical-failure diagnosis, Gaussian-scale measurements, stabilization, resumed training, and reproducibility caveat are documented in [`DS1_DB_RESULTS.md`](DS1_DB_RESULTS.md).
+
+The complete epoch-wise DB metrics are stored in:
+
+`ds1_db_metrics.csv`
