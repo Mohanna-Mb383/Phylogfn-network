@@ -99,3 +99,7 @@ Replaying from `checkpoint_000244.pt` with this lower scale floor removed the fa
 This DB result is a stabilized checkpoint continuation rather than a bit-for-bit uninterrupted 300-epoch run. Epochs `0-244` used the original DB run; epochs `245-299` resumed from checkpoint 244 with the `1e-3` Gaussian scale floor active. Model and optimizer states were restored, but the process RNG stream restarted at resume.
 
 The resumed 55 epochs required `36,734 s` training time and `39,998 s` total time.
+
+### Complete DB experiment report
+
+The complete DS1 DB experiment, numerical-failure diagnosis, Gaussian-scale measurements, stabilization, resumed training, and reproducibility caveat are documented in [`DS1_DB_RESULTS.md`](DS1_DB_RESULTS.md).
