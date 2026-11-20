@@ -1,0 +1,457 @@
+{
+ "run_dir": "/srv/scratch1/mmousabeigi/phylogfn_proposal_20260929/phylogfn/runs/20261002_184937_ds2_network_no_knn_300ep",
+ "checkpoint": "/srv/scratch1/mmousabeigi/phylogfn_proposal_20260929/phylogfn/runs/20261002_184937_ds2_network_no_knn_300ep/checkpoints/checkpoint_000299.pt",
+ "checkpoint_epoch": 299,
+ "checkpoint_is_final_epoch": true,
+ "configured_epochs": 300,
+ "checkpoint_sha256": "2231d3538188f83b34b93b78717c815dd924d4f35105afbf77c040605441b666",
+ "checkpoint_bytes": 74005538,
+ "config_sha256": "b8015a1214bcb16149a62633d0eff60ba7d603afccfd9e6bc0032e108b4f988e",
+ "sequences": "dataset/benchmark_datasets/DS2.pickle",
+ "sequences_sha256": "4890feafe654515135b9abe8205814c30a036b81fbb76995d1c085fe4c1a2b2e",
+ "objective": "TB",
+ "training_seed": 1,
+ "r_max": 2,
+ "lambda_r": 1.0,
+ "prior_type": "EXP_R",
+ "prior_lambda": 10.0,
+ "reward_C": 0.0,
+ "slot_label_correction": false,
+ "env_network_config": {
+  "R_MAX": 2,
+  "LAMBDA_R": 1.0,
+  "PRIOR_TYPE": "EXP_R",
+  "PRIOR_EXPONENT_W": 1.0,
+  "EXPLICIT_STOP": false,
+  "LAMBDA_CONDITIONING": false,
+  "LAMBDA_RANGE": "[0.0, 4.0]",
+  "LAMBDA_EVAL": -1.0,
+  "KNN": "DNABERT2_MODEL: zhihan1996/DNABERT-2-117M\nEMBEDDING: KMER\nEMBEDDING_PATH: \nENABLED: False\nEPS_EVAL: 0.001\nEPS_MIN: 0.001\nK: 5\nKMER_K: 4\nMETRIC: COSINE\nMODE: EXACT\nPROPAGATION: DIRICHLET"
+ },
+ "weights": {
+  "n_tensors": 137,
+  "n_parameters": 4821722,
+  "missing_flow_head": false,
+  "has_optimizer_state": true
+ },
+ "history_record_at_epoch": {
+  "epoch": 299,
+  "loss_mean": 15.442889055013657,
+  "log_Z": -26180.1953125,
+  "temperature": 1.0,
+  "mll": -26273.66015625,
+  "pearsonr": 0.9587745648448036,
+  "mean_R": 2.0,
+  "hist_R": [
+   0,
+   0,
+   1024
+  ]
+ },
+ "history_epochs": [
+  0,
+  299,
+  300
+ ],
+ "final_mlls": {
+  "mean": -26273.688802083332,
+  "std": 0.10253854579896271,
+  "n": 3
+ },
+ "code": {
+  "commit": null,
+  "modified_tracked_files": null,
+  "modified_list": [],
+  "uncommitted_diff_sha256": null,
+  "source_files_sha256": {
+   "run_posterior_topology.sh": "765c24f32a95c67c6e368926ab9c8dd32202c13f09b81466f41d653f43f292f0",
+   "src/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "src/configs/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "src/configs/defaults.py": "b8cb1a2cc85ca0f565db67a9c2b76af88cec9a17080adbf1c310233b7da82f3a",
+   "src/env/__init__.py": "81b978a70385d6b7126066267db5e2a582e537855d147813e2e6e5ab0aa45332",
+   "src/env/binary_tree_env_one_step_likelihood.py": "689fc9537078ffff609dfc049a008df2b1799a12367b35514888482bd58c6574",
+   "src/env/edges_env/__init__.py": "20c8ddfc76824d86396bcfb2e12e525682016fc1e7a949a75c6499a2f16731ae",
+   "src/env/edges_env/categorical.py": "9d3c62a08fc6d87bbfca24bc45e69a1c87cddfcb18b512d1a4da7f0b2aaddb5b",
+   "src/env/edges_env/continuous.py": "74897f5701c0c2ff5aa1c0d6a7635eede1025f9384c26a05fbeb0a57438eb787",
+   "src/env/network_graph_batch.py": "974d75921aadb3dc363e821884a13a54d82ae68471a310d291f67fd0f34ba510",
+   "src/env/phylo_network_env.py": "1a03b1409aa227b8ae733570e6265f84ff35e98ec8e262ae1a90f2b04639ca68",
+   "src/env/trajectory.py": "83a19601d40668f03cc0ea7f0cd32adda5af0d3062dba3b0b87ab5bc6e47d171",
+   "src/gfn/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "src/gfn/build.py": "be39701df797da00ce027a14790f0d66a22920477c9fe77e27f75dde4fd61f57",
+   "src/gfn/rollout_worker_net.py": "3c6887ffc2b9f08b9fc9dc4219a89eef387ec38f9fc292a330484507a415988c",
+   "src/gfn/tb_gfn_net.py": "710fc24d7c3ad0304699f2da53eb6329395bb76e36442c31c5e34f2b88ebc7c8",
+   "src/gfn/tb_gfn_phylo.py": "f5c6d367767a79622384f159f592cdbfd4b784c3cb04cea922cc868deb217081",
+   "src/model/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "src/model/edges_model/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "src/model/edges_model/build.py": "e35421916f287b1981b210e96d4e9f96c9e4a182c6c740f43d876ad0f1c6ba37",
+   "src/model/edges_model/categorical/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "src/model/edges_model/categorical/categorical.py": "c60cfe50a76432ea248ab60b69ee4917e451cf412efefbe7ff4b6942304256d0",
+   "src/model/edges_model/continuous/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "src/model/edges_model/continuous/continuous_mixture.py": "fe92fa9efc2a5ce9f9c020ab102dcd262b9591ffa228081109df38eda105d5e6",
+   "src/model/edges_model/continuous/network_heads.py": "ccc0970af87e0eee0b5351db80657d50e6b0f6b06d7feea9576a7ab7e2d6ef02",
+   "src/model/mlp.py": "451ed55861e7235c20f8a32aabd2150ce0e1ee721ed4bbde1eaaf32bebc1c9eb",
+   "src/model/network_model/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "src/model/network_model/graph_encoder.py": "10c2f1586e7b443b28bd077f011c3c2a2cf93843fc9c9a215d793a1668d74a2e",
+   "src/model/network_model/one_step_network_model.py": "c057a1e9272ad466b1671ec3bc62cbc73c7631a9083441e5f8edc9357b6e1b49",
+   "src/model/transformer.py": "62d7bdf3a266c0976e49fb0d085e5a2f2339e8a2a7b7ed9f9f7de5d0768cf298",
+   "src/model/tree_topologies_model/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "src/model/tree_topologies_model/build.py": "a76254aadc61565d0d131b5317c177e0f71b359d1a6751beb780c1ce600dc0d1",
+   "src/model/tree_topologies_model/one_step_model.py": "f29dfd1df6a0063593bf6e5cef5e13e604bd2b35fd6282122677a42b47ddf104",
+   "src/model/weight_init.py": "7123469c03fe3470a6495b24a3a46697a3dae9fd84f1c791c7d7d0ea0ac3454e",
+   "src/utils/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "src/utils/evolution_model_torch.py": "f2a1199c0cfd28598f7d8a590624dffa1cd16a44f453e092484f9630c874bb92",
+   "src/utils/level1_counts.py": "3c33e0f728689bfed0eaebf25a1faf68d6764af58c27e09fa6e17ee32c6feb1f",
+   "src/utils/lr_schedulers/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "src/utils/lr_schedulers/build.py": "687eff27ae4675e8c71bbe7bd7766c4e750f917e0c9e52243529a082513d861e",
+   "src/utils/lr_schedulers/cosine.py": "a4381a44582d9a1c3e7c1d08f01d7ff69fb722342fb1fe347be364f6fd551db9",
+   "src/utils/lr_schedulers/cosine_restart.py": "945d9a2bfd0ba131bb8e6bc1b1128ac531aabc8ae0287a1f2b116a7cf8f492af",
+   "src/utils/network_compare.py": "93455ff92623afad0d731b14caa6fbf668b062e553c0ca11e4dc124c8b1cb3c3",
+   "src/utils/network_likelihood.py": "6459f82c9199059a629aa47c45722710918cd848078abcc35333efa5f518b05d",
+   "src/utils/network_newick.py": "b8ed509902628c5927627019017765951475f8083b7b973a8c2225995a750f79",
+   "src/utils/posterior_stats.py": "630b0686c63375cbb21532116f6cf4c9f6c89aa6daa1b284e73cbb2494649932",
+   "src/utils/utils.py": "2b69b701686cf841542fb92c8d4e58e5bcf0e71260524b50ac0b49a228b62d64",
+   "tools/posterior_common.py": "2c8f71b7d93e7879e38b8b71006d92579eec08dc4e6fdf0e952adaccb3351112",
+   "tools/sample_posterior_newick.py": "fed8e7c301219a7cbeecad62fd42298eef5366dfbb5da62e261501144fca1f03"
+  },
+  "source_digest": "4e90fed65fef4fd341321b0a84eb9e9a4aa0a8909bbc2d30290f098539de17ec",
+  "n_source_files": 48,
+  "untracked_source_files": null,
+  "modified_source_files": null
+ },
+ "versions": {
+  "python": "3.10.21",
+  "torch": "2.5.1+cu118",
+  "numpy": "2.2.6",
+  "platform": "Linux-6.12.94+deb13-amd64-x86_64-with-glibc2.41",
+  "scipy": "1.15.3",
+  "networkx": "3.4.2",
+  "ete3": "3.1.3",
+  "yacs": "unknown",
+  "matplotlib": "3.10.9"
+ },
+ "config_keys_absent_from_run": [],
+ "config_keys_not_reviewed": [
+  [
+   "ENV.NETWORK.EXPLICIT_STOP",
+   false
+  ],
+  [
+   "ENV.NETWORK.KNN.DNABERT2_MODEL",
+   "zhihan1996/DNABERT-2-117M"
+  ],
+  [
+   "ENV.NETWORK.KNN.EMBEDDING",
+   "KMER"
+  ],
+  [
+   "ENV.NETWORK.KNN.EMBEDDING_PATH",
+   ""
+  ],
+  [
+   "ENV.NETWORK.KNN.ENABLED",
+   false
+  ],
+  [
+   "ENV.NETWORK.KNN.EPS_EVAL",
+   0.001
+  ],
+  [
+   "ENV.NETWORK.KNN.EPS_MIN",
+   0.001
+  ],
+  [
+   "ENV.NETWORK.KNN.K",
+   5
+  ],
+  [
+   "ENV.NETWORK.KNN.KMER_K",
+   4
+  ],
+  [
+   "ENV.NETWORK.KNN.METRIC",
+   "COSINE"
+  ],
+  [
+   "ENV.NETWORK.KNN.MODE",
+   "EXACT"
+  ],
+  [
+   "ENV.NETWORK.KNN.PROPAGATION",
+   "DIRICHLET"
+  ],
+  [
+   "ENV.NETWORK.LAMBDA_CONDITIONING",
+   false
+  ],
+  [
+   "ENV.NETWORK.LAMBDA_EVAL",
+   -1.0
+  ],
+  [
+   "ENV.NETWORK.LAMBDA_RANGE",
+   "[0.0, 4.0]"
+  ],
+  [
+   "ENV.NETWORK.PRIOR_EXPONENT_W",
+   1.0
+  ],
+  [
+   "ENV.REWARD.QUARTET_Q",
+   100
+  ],
+  [
+   "ENV.REWARD.QUARTET_SEED",
+   0
+  ],
+  [
+   "ENV.REWARD.SCHEDULE",
+   "[]"
+  ],
+  [
+   "ENV.REWARD.TYPE",
+   "LIKELIHOOD"
+  ],
+  [
+   "GFN.MODEL.BACKWARD_HEAD.ACT_FN",
+   "RELU"
+  ],
+  [
+   "GFN.MODEL.BACKWARD_HEAD.DROPOUT",
+   0.0
+  ],
+  [
+   "GFN.MODEL.BACKWARD_HEAD.HIDDEN_SIZE",
+   128
+  ],
+  [
+   "GFN.MODEL.BACKWARD_HEAD.INPUT_SIZE",
+   258
+  ],
+  [
+   "GFN.MODEL.BACKWARD_HEAD.LAYERS",
+   2
+  ],
+  [
+   "GFN.MODEL.BACKWARD_HEAD.OUTPUT_SIZE",
+   1
+  ],
+  [
+   "GFN.MODEL.EVALUATION_FINAL_MLL_REPEATS",
+   3
+  ],
+  [
+   "GFN.MODEL.GRAPH_ENCODER.ENABLED",
+   false
+  ],
+  [
+   "GFN.MODEL.GRAPH_ENCODER.HIDDEN_SIZE",
+   64
+  ],
+  [
+   "GFN.MODEL.GRAPH_ENCODER.LAYERS",
+   2
+  ],
+  [
+   "GFN.MODEL.LAMBDA_EMB.ACT_FN",
+   "RELU"
+  ],
+  [
+   "GFN.MODEL.LAMBDA_EMB.DROPOUT",
+   0.0
+  ],
+  [
+   "GFN.MODEL.LAMBDA_EMB.HIDDEN_SIZE",
+   64
+  ],
+  [
+   "GFN.MODEL.LAMBDA_EMB.INPUT_SIZE",
+   1
+  ],
+  [
+   "GFN.MODEL.LAMBDA_EMB.LAYERS",
+   2
+  ],
+  [
+   "GFN.MODEL.LAMBDA_EMB.OUTPUT_SIZE",
+   128
+  ],
+  [
+   "GFN.MODEL.STATE_FLOW_HEAD.ACT_FN",
+   "RELU"
+  ],
+  [
+   "GFN.MODEL.STATE_FLOW_HEAD.DROPOUT",
+   0.0
+  ],
+  [
+   "GFN.MODEL.STATE_FLOW_HEAD.HIDDEN_SIZE",
+   128
+  ],
+  [
+   "GFN.MODEL.STATE_FLOW_HEAD.INPUT_SIZE",
+   128
+  ],
+  [
+   "GFN.MODEL.STATE_FLOW_HEAD.LAYERS",
+   2
+  ],
+  [
+   "GFN.MODEL.STATE_FLOW_HEAD.OUTPUT_SIZE",
+   1
+  ]
+ ],
+ "n_taxa": 29,
+ "n_sites": 2520,
+ "device": "cpu",
+ "dataset": "DS2",
+ "what": "independent draws from the trained GFlowNet forward policy (learned distribution q_theta); not validated posterior samples",
+ "sampler": "RolloutWorkerNet.rollout(generator, k, generate_full_trajectories=True), random_spec=None, generator.eval(), torch.no_grad(), reward scale 1",
+ "n_samples": 1000,
+ "chunk": 64,
+ "threads": 4,
+ "sampling_seed": 42,
+ "subset_size": 100,
+ "subset_seed": 42,
+ "subset_rule": "numpy.random.default_rng(subset_seed).choice(n, size=subset, replace=False), sorted",
+ "subset_indices": [
+  41,
+  59,
+  64,
+  73,
+  77,
+  80,
+  85,
+  95,
+  117,
+  126,
+  139,
+  147,
+  155,
+  157,
+  168,
+  183,
+  184,
+  185,
+  211,
+  221,
+  238,
+  259,
+  287,
+  308,
+  314,
+  322,
+  334,
+  341,
+  346,
+  353,
+  358,
+  373,
+  385,
+  391,
+  396,
+  412,
+  414,
+  419,
+  422,
+  429,
+  431,
+  445,
+  450,
+  455,
+  460,
+  464,
+  470,
+  475,
+  479,
+  506,
+  517,
+  523,
+  552,
+  591,
+  593,
+  596,
+  620,
+  633,
+  636,
+  643,
+  655,
+  656,
+  660,
+  669,
+  671,
+  681,
+  690,
+  695,
+  698,
+  712,
+  714,
+  716,
+  720,
+  722,
+  739,
+  759,
+  763,
+  771,
+  772,
+  776,
+  777,
+  798,
+  804,
+  819,
+  823,
+  830,
+  835,
+  846,
+  856,
+  875,
+  886,
+  889,
+  893,
+  918,
+  922,
+  932,
+  950,
+  963,
+  964,
+  979
+ ],
+ "reticulation_histogram": [
+  0,
+  0,
+  1000
+ ],
+ "n_unique_rooted_topologies": 76,
+ "n_unique_topologies": 2,
+ "branch_length_range": [
+  4.539993096841499e-05,
+  0.24440379440784454
+ ],
+ "parameter_clipping": {
+  "log_branch_length_bounds": [
+   -10.0,
+   0.0
+  ],
+  "logit_theta_abs_max": 8.0,
+  "source": "src/model/edges_model/continuous/network_heads.py (.clip calls); the root merge clips the TOTAL length of the two root edges",
+  "draws_with_a_clipped_parameter": 3,
+  "clipped_lengths": 3,
+  "clipped_inheritance_probabilities": 0
+ },
+ "validation": {
+  "samples_checked": 1000,
+  "structure_valid": 1000,
+  "newick_roundtrip_edge_by_edge": 1000,
+  "edge_record_roundtrip_edge_by_edge": 1000,
+  "finite_scores": 1000,
+  "failures": 0,
+  "gamma_tolerance": 4.5e-16,
+  "branch_length_tolerance": 0.0
+ },
+ "timing_s": {
+  "sampling_and_validation": 262.117733001709,
+  "total": 276.0463533401489
+ },
+ "command": "python tools/sample_posterior_newick.py /srv/scratch1/mmousabeigi/phylogfn_proposal_20260929/phylogfn/runs/20261002_184937_ds2_network_no_knn_300ep dataset/benchmark_datasets/DS2.pickle --epoch 299 --expect-objective TB --n 1000 --seed 42 --subset 100 --subset-seed 42 --chunk 64 --device cpu --threads 4 --out-dir /srv/scratch1/mmousabeigi/posterior_v2_ds2_tb_1000 --dataset-name DS2",
+ "created": "2026-11-20 20:46:35",
+ "extended_newick": "(subtree)#Hk:length::gamma at the first parent, #Hk:length::gamma at the second; gamma = inheritance probability of that hybrid edge"
+}

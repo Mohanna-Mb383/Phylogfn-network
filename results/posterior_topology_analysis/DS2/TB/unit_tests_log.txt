@@ -1,0 +1,62 @@
+T01 exact round trip (Newick and edge record; lengths bit for bit, inheritance within 2 ulp) on 200 random networks, R histogram {0: 11, 1: 68, 2: 85, 3: 29, 4: 5, 5: 2}; node and edge counts 2N - 1 + 2R, 2N - 2 + 3R
+      (3.0 s)
+T02 285 rewritings (children shuffled, node indices replaced, parent slots exchanged) give the same ids at every level, the same edge table and zero for every distance; hybrid tag name and order of the two occurrences are irrelevant
+      (3.7 s)
+T03 9 strings with invalid inheritance probabilities refused (outside [0, 1], sum != 1, on a tree edge or the root, missing, nan, four fields); one missing value is inferred and reported; theta belongs to the first-written parent
+      (0.0 s)
+T04 10 strings with invalid numbers refused (negative, overflow, inf, nan, malformed); non-finite or negative lengths and theta outside [0, 1] are refused by validate_network; numbers are written with repr() and read back bit for bit
+      (0.0 s)
+T05 150 round trips with spaces, quotes, parentheses, brackets, colon, comma, semicolon, tab, "|" and "#" in taxon names; signature JSON is lossless; a quoted "#H1" is a taxon, an unquoted one a hybrid tag
+      (0.3 s)
+T06 20 malformed strings refused with ValueError, each for the stated reason (hybrid written once / three times / with two subtrees / with two children / as root, parallel edges, stacked hybrids, non-binary and unary nodes, text after ";", unknown / repeated / missing taxa)
+      (0.0 s)
+T07 a directed cycle raises ValueError in every traversal; 5 corrupted reticulation records refused; level-2 strings refused; networkx: on 145 accepted networks every biconnected component is a single edge or a simple cycle with exactly one reticulation
+      (2.1 s)
+T08 178 networks, 2211 in-class rootings: each validates and has the same class id, signatures, displayed-tree distribution and root-invariant edge table; the number of positions equals an independent networkx count; 79 networks have the root on top of a 3-cycle (2 positions, 1 rooted form); every other root position is refused
+      (57.9 s)
+T09 exhaustive N = 4: 603 rooted networks = level1_count [15, 228, 360]; "is an in-class re-rooting of" is an equivalence relation with 279 classes of sizes {1: 222, 5: 21, 7: 24, 9: 12}; the class id is constant on a class and distinct across classes; 261 distinct signature sets, 6 distinct displayed-tree sets; the mu-representation is injective on the 603
+      (2.0 s)
+T10 log score (likelihood x branch prior x reticulation prior) recomputed for 179 in-class rootings of 25 networks, explicit and fast path: largest difference from the original 2.5e-10
+      (0.6 s)
+T11 exchanging the two parent slots of a reticulation (theta -> 1 - theta) on 40 networks: same ids, same displayed-tree weights, same edge table, log score differs by at most 0.0e+00
+      (0.2 s)
+T12 fixed cases (3-cycle: 1 topology, 4-cycle: 2, root on a 3-cycle: 2 parallel edges, 1 topology); on 355 random networks the number of displayed unrooted topologies is 2^(number of cycles with k_sd >= 4) and k_sd = k_rooted - [root on the cycle]; cycle lengths seen {2: 161, 3: 251, 4: 114, 5: 51, 6: 25, 7: 19, 8: 6, 9: 5, 10: 2, 11: 2}
+      (5.3 s)
+T13 trees (R = 0): on 1215 pairs every displayed-tree quantity equals the unrooted Robinson-Foulds distance of ete3 and the mu-distance equals its rooted Robinson-Foulds distance; same class <=> unrooted RF 0; same rooted topology <=> rooted RF 0
+      (2.4 s)
+T14 different classes with the same displayed-tree set: every displayed-tree quantity is 0 although the networks differ (mu-distance > 0); NET4 / NETB display the same set with different major trees (same_major 0, major RF 2, TV 0.4)
+      (0.0 s)
+T15 NET4 / NET4B share one displayed tree and differ in the other: min RF 0, Hausdorff RF 2, Jaccard 2/3, TV 0.3, Jensen-Shannon distance sqrt(0.3), split L1 0.6, mean RF 1.5, expected RF 1.02 (hand-computed values); same hybrid clade {C} but different signatures
+      (0.0 s)
+T16 counterexample: T_AB, NET4, T_CD: min RF(T_AB, NET4) = min RF(NET4, T_CD) = 0 and min RF(T_AB, T_CD) = 2: no triangle inequality and zero for different networks; the Hausdorff RF of the same triple is 2, 2, 2
+      (0.0 s)
+T17 a network compared with itself: 0 for every metric, pseudo-metric and dissimilarity, 1 for every indicator; the mean and the expected displayed-tree RF of NET4 with itself are 1.0 and 0.84 (descriptive statistics, kept on the diagonal of the matrices)
+      (0.0 s)
+T18 NET4 with inheritance 0.7 / 0.3 against 0.2 / 0.8: same rooted topology, TV 0.5, split L1 1.0, different major tree; on 1830 pairs the expected RF equals the sum over all 2^R x 2^R displayed trees and E_AB - (E_AA + E_BB) / 2 = ||s_A - s_B||^2 (largest deviation 1.8e-15)
+      (0.9 s)
+T19 90 networks, 4005 pairs, 6000 random triples: symmetry, non-negativity, zero self value, bounds and the triangle inequality hold for mu_distance, dt_rf_hausdorff, dt_tv, dt_js_distance, dt_jaccard_distance, split_l1, major_rf, sig_jaccard_distance, hybrid_clade_jaccard_distance; zero <=> equality of the stated object; triangle violations found for the dissimilarity dt_rf_min: 19, for the descriptive statistics dt_rf_mean: 0, dt_rf_expected: 0
+      (0.5 s)
+T20 on 440 random networks equal rooted topology implies equal class, and equal class implies equal signature set and equal displayed-tree set; counterexamples: same signatures / different displayed sets (SIG_1, SIG_2), same displayed set / different signatures (NET3_AB, NET3_EF), same class / different major tree (NET4 with other inheritance), same class / 11 rooted topologies (NET4)
+      (4.0 s)
+T21 the five pair classes are realised by explicit pairs, are symmetric, mutually exclusive and exhaustive on 3160 random pairs {'P1': 0, 'P2': 0, 'P3': 11, 'P4': 49, 'P5': 3100}
+      (0.4 s)
+T22 100 networks give 4950 unordered pairs; 25 matrices are symmetric and finite, hold the self comparison on the diagonal and agree with the pair rows; compare(A, B) = compare(B, A)
+      (0.6 s)
+T23 on 340 networks (212 with two or more reticulations) the hybrid descendant clades of one network are pairwise different and equal the leaf sets below the reticulations (networkx); a clade does not determine the placement: NET4 and NET4B share the clade {C} and have different signatures
+      (4.1 s)
+T24 root-invariant edge keys: 135 networks rewritten and 1523 re-rooted networks give the same keys and values (one key per edge of the semi-directed view, lengths sum to the total, two inheritance keys per reticulation); the rooted keys change under re-rooting as they must
+      (2.8 s)
+T25 Wilson interval, entropy, perplexity, Miller-Madow, coincidence probability, Good-Turing, Chao1, jackknife error, accumulation curve and entropy chain rule agree with hand-computed values; over 300 simulated samples the Good-Turing estimate of the unseen mass has bias -0.0031 and its +-1.96 SE interval covers the true unseen mass in 94% of them
+      (0.1 s)
+T26 mean over the n (n - 1) / 2 pairs of n = 40 draws, 400 replicates: true SD of the mean 0.1283; jackknife over draws gives 1.00 x that; the standard error that treats the 780 pairs as independent gives 0.23 x that (too small)
+      (0.0 s)
+T27 importance-weight summary (ESS n for equal weights, 1 for one dominant weight, no overflow), self-normalised reweighting recovers a known target within its standard error, root-uniformity z-scores: |z| < 4 when the root is placed uniformly on the in-class positions of 300 networks, |z| > 10 for a sampler that always roots on a cycle edge
+      (1.0 s)
+T28 prior on the number of reticulations: equals the enumeration for N = 4 ([0.1016, 0.5683, 0.3301] over rooted graphs, [0.0397, 0.4442, 0.5161] over the slot-labelled objects the sampler generates); for N = 27 the prior alone puts 0.9843 (graphs) / 0.9921 (labelled) on R = 2; for EXP_R and UNIFORM_R the prior of the target equals the reward of the environment summed over the 2^R labellings of the 603 graphs, and equals the graph prior when the slot-label correction is on
+      (0.0 s)
+T29 Jensen-Shannon distance: P = (0.5, 0.5), Q = (0.50000001, 0.49999999) gives 8.493218e-09 (exact 8.493218e-09), not 0; 0 exactly for identical vectors, 1 for disjoint support, positive down to a difference of one unit in the last place; largest relative error against 80-digit arithmetic over 17 differences from 0.4 to 1.2e-16 and 2932 random pairs: 6.5e-14; the same value through compare()
+      (1.1 s)
+T30 real merge-edge head, log length ~ Normal(-0.2, 0.5): 0.3449 of 200000 draws are exactly 1.0 (tail mass 0.3446); the head returns the unclipped density 0.7365 for them; the reported density integrates to 0.6553 over the box; estimate of a normaliser equal to 0.8944: 1.1089 +- 0.0011 with the weights as the code forms them (bias 0.2136), 0.8950 +- 0.0017 with weight 0 on the atom; importance_summary and reweighted_masses accept zero weights
+      (0.1 s)
+30 TESTS RUN, 0 SKIPPED, 93 s
+ALL TESTS PASSED

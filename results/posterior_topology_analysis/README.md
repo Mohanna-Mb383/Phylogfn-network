@@ -20,7 +20,7 @@ The analysis includes:
 | Dataset | TB | DB | WDB |
 |---------|----|----|-----|
 | DS1 | Completed | Pending | Pending |
-| DS2 | Pending | Pending | Pending |
+| DS2 | Completed (compatibility warning) | Pending | Pending |
 | DS3 | Pending | Pending | Pending |
 | DS4 | Pending | Pending | Pending |
 | DS5 | Pending | Pending | Pending |
@@ -52,3 +52,22 @@ sampled by the trained GFlowNet policy.
 They do not establish exact equality with the Bayesian
 target posterior. Independent posterior validation remains
 a separate research task.
+
+
+## DS2 — Trajectory Balance
+
+- Training: 300 epochs
+- Final checkpoint: epoch 299
+- Samples: 1,000
+- Rooted topologies: 76
+- Root-equivalence classes: 2
+- Reticulation signatures: 2
+- Displayed-tree sets: 2
+- Major trees: 8
+
+The audit retains a configuration-compatibility warning
+because the original training code contains additional options.
+Results describe the sampled GFlowNet distribution, not an
+independently verified exact Bayesian posterior.
+
+Results: [DS2/TB](DS2/TB/)
