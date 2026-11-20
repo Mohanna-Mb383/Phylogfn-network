@@ -21,7 +21,7 @@ The analysis includes:
 |---------|----|----|-----|
 | DS1 | Completed | Pending | Pending |
 | DS2 | Completed (compatibility warning) | Pending | Pending |
-| DS3 | Pending | Pending | Pending |
+| DS3 | Completed (1 audit warning) | Pending | Pending |
 | DS4 | Pending | Pending | Pending |
 | DS5 | Pending | Pending | Pending |
 | DS6 | Pending | Pending | Pending |
@@ -71,3 +71,26 @@ Results describe the sampled GFlowNet distribution, not an
 independently verified exact Bayesian posterior.
 
 Results: [DS2/TB](DS2/TB/)
+
+
+## DS3 — Trajectory Balance
+
+- Training: 300 epochs
+- Final checkpoint: epoch 299
+- Policy samples: 1,000
+- Comparison subset: 100
+- Rooted topologies: 293
+- Root-equivalence classes: 17
+- Reticulation signatures: 13
+- Displayed-tree sets: 17
+- Major trees: 36
+- Pairwise comparisons: 4,950
+- Importance-sampling ESS: 12.3 / 1,000
+- Checkpoint audit: 12 PASS, 1 WARN, 0 FAIL
+
+The remaining warning concerns configuration compatibility.
+External Newick parser verification was not performed.
+These results characterize the GFlowNet sampling distribution,
+not an independently validated exact Bayesian posterior.
+
+[DS3 Results](DS3/TB/)

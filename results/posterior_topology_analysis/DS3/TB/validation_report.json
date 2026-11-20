@@ -1,0 +1,12 @@
+{
+ "parsed": 1000,
+ "same_as_edge_record": 1000,
+ "csv_consistent": 1000,
+ "scores_consistent": 1000,
+ "subset_consistent": true,
+ "failures": 0,
+ "external_parsers": null,
+ "explicit_score_max_diff": 2.1827872842550278e-11,
+ "identical_taxon_sets": true,
+ "n_taxa": 36
+}
