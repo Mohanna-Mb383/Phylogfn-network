@@ -1,0 +1,6 @@
+pair_class,pairs,fraction,jackknife_se,same_major,same_R,same_sig,same_dt_set
+P1_same_rooted_topology,10,0.00202020202020202,0.0010853388234251232,5,10,10,10
+P2_same_class_different_rooting,510,0.10303030303030303,0.01927595274090602,200,510,510,510
+P3_different_class_same_displayed_set,0,0.0,0.0,0,0,0,0
+P4_displayed_sets_differ_share_a_topology,614,0.12404040404040403,0.01935453761270535,138,614,0,0
+P5_no_displayed_topology_in_common,3816,0.7709090909090909,0.027899270280051642,0,3816,963,0

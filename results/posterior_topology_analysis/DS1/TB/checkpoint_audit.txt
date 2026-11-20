@@ -1,0 +1,32 @@
+[INFO] working tree: commit 788584912f175cc9d8480cbc3a6d39d9cf3e1530, 0 modified tracked files, uncommitted diff sha256 none
+[INFO] versions: {"python": "3.10.21", "torch": "2.5.1+cu118", "numpy": "2.2.6", "platform": "Linux-6.12.94+deb13-amd64-x86_64-with-glibc2.41", "scipy": "1.15.3", "networkx": "3.4.2", "ete3": "3.1.3", "yacs": "unknown", "matplotlib": "3.10.9"}
+[INFO] config runs_ds1_complete/20261113_220512_ds1_baseline_resume_s1/config.yaml sha256 468727213d27aef8538f1d466b40e184e81991e4b5e080cb1bb96bac6d6c5785
+[PASS] every configuration key of the run is defined by this working tree
+[PASS] the run configuration holds every key this working tree defines (no default is filled in)
+[PASS] every configuration option of this working tree existed in the repository revision the posterior-topology tools were written against (195 options)
+[PASS] environment ONE_STEP_LEVEL1_NETWORK; dataset dataset/benchmark_datasets/DS1.pickle: 27 taxa, 1949 sites, sha256 dbdaed72f67b69058b8f6208dd0ac7e55c89878e88108da08dc3f450b1ae729c; sites and token size agree with the configuration
+[PASS] objective TB (expected TB)
+[PASS] training seed recorded in config.yaml: 1 (expected 1)
+[PASS] configured epochs 300 x 200 steps (expected 300)
+[INFO] prior: R_MAX 2, LAMBDA_R 1, type EXP_R, branch-length prior rate 10; slot-label correction absent; reward C 0
+[INFO] ENV.NETWORK options of the run: {"LAMBDA_R": "1.0", "PRIOR_TYPE": "EXP_R", "R_MAX": "2"}
+[PASS] the environment configured for this run generates exactly the class C at N = 4: [15, 228, 360] rooted networks by R (the root-equivalence statistics apply)
+[INFO] checkpoint files: epochs 236..299, 64 files
+[PASS] checkpoint runs_ds1_complete/20261113_220512_ds1_baseline_resume_s1/checkpoints/checkpoint_000299.pt: epoch 299, IS the last configured epoch (299); 64056354 bytes; sha256 77c6014982552e8fab55d536584d4c74e3eaef6d6d5fe52c00f2c758de228e9b
+[PASS] weights load into the model built from the configuration: 129 tensors, 4171188 parameters, all finite; optimizer state present
+[INFO] history.pkl: 64 records, epochs 236..299
+[PASS] history record of epoch 299: reward temperature 1.0 (the samples are drawn at temperature 1); MLL -7043.03173828125, mean R 2.0, R histogram [0, 0, 1024]
+[PASS] final_mlls.p present (training reached its end): mean -7043.143, std 0.104 over 3 estimates
+[PASS] original and resumed segment have the same configuration (OUTPUT_PATH ignored)
+[INFO] original segment runs_ds1_complete/20261112_013505_ds1_baseline_s1: epochs 0..235; resumed segment: epochs 236..299
+[PASS] the two segments cover epochs 0..299
+[INFO] last record of the original segment (epoch 235): MLL -7043.07568359375, R histogram [0, 0, 1024]
+[INFO] training processes on this machine: 0
+[INFO] load average 2.89 3.27 2.81 on 56 CPUs; memory available 425.6 of 432.8 GB
+[INFO] GPUs: 0, NVIDIA L40S, 1 MiB, 46068 MiB, 0 % -- the posterior-topology tools default to the CPU and do not use a GPU unless --device cuda is given
+[PASS] forward pass: 4 trajectories in 0.8 s on the CPU; log P_F, log P_B, log scores finite; R of the 4 samples [2, 2, 2, 2]
+[INFO] MLL estimate from 1024 trajectories: -7042.977 (delta-method SE 0.127, ESS 58.8, 246 s); training log (history.pkl at this epoch): -7043.032
+[PASS] MLL estimate and logged MLL differ by 0.054; tolerance max(1, 4 SE) = 1.000 (same estimator, other draws; a larger difference points to another checkpoint, dataset, prior setting or code revision, or to a standard error that is too small because few trajectories dominate)
+[INFO] Gaussian-mixture scales of the 2 merge-edge heads over the audit rollouts: 282700 values, min 8.666e-02, max 1.471e+00; at the floor 1e-3: 0; at the cap e^20: 0 (a non-zero count changes the sampled distribution only if the checkpoint was trained by a revision without these bounds)
+[INFO] source files executed by this audit: 44, digest ffff37832b0abe2a13a6f5e57abfa0d171caa333bfd4381bf9a612358e7915f4 (SHA-256 of the list of their SHA-256); not tracked by git: run_posterior_topology.sh, src/utils/posterior_stats.py, tools/audit_checkpoint.py, tools/posterior_common.py; tracked with uncommitted changes: none. The sampler writes the SHA-256 of every file it executes into sampling_metadata.json (code.source_files_sha256)
+[INFO] summary: 16 PASS, 0 WARN, 0 FAIL
