@@ -1,0 +1,4 @@
+clade_json,n_taxa,samples_containing,fraction_of_samples,ci_low,ci_high,reticulation_occurrences,fraction_of_reticulations,mean_inheritance_of_heavier_edge
+"[""Talaromyces_flavus""]",1,1000,1.0,0.996173241514445,1.0,1000,0.5,0.6451295560188591
+"[""Chytridium_confervae""]",1,962,0.962,0.9482730796686497,0.9721909954906974,962,0.481,0.5847282945304304
+"[""Entomophthora_muscae""]",1,38,0.038,0.02780900450930263,0.05172692033135032,38,0.019,0.5729076713323593

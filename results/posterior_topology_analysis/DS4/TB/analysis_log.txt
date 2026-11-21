@@ -1,0 +1,2 @@
+validated 1000 samples (117 s)
+done in 124 s: n = 1000; distinct L1 735, L2 152, L3 85, L4 152, L5 116; ESS 26.8; subset pairs 4950
