@@ -1,0 +1,26 @@
+[INFO] working tree: commit None, None modified tracked files, uncommitted diff sha256 none
+[INFO] versions: {"python": "3.10.21", "torch": "2.5.1+cu118", "numpy": "2.2.6", "platform": "Linux-6.12.94+deb13-amd64-x86_64-with-glibc2.41", "scipy": "1.15.3", "networkx": "3.4.2", "ete3": "3.1.3", "yacs": "unknown", "matplotlib": "3.10.9"}
+[INFO] config /srv/scratch1/mmousabeigi/phylogfn-v3eng-bench/runs/20261026_014933_ds7_network_no_knn_300ep_lowmem/config.yaml sha256 021588498cfeaa2767bce98552ca81bc813547bb0398f6df2f0399b24e89f8fa
+[PASS] every configuration key of the run is defined by this working tree
+[PASS] the run configuration holds every key this working tree defines (no default is filled in)
+[WARN] 5 configuration option(s) of this working tree did not exist in the repository revision the posterior-topology tools were written against; the tools do not interpret them. Values in this run: ENV.NETWORK.BLOCK_TRIANGLES = False; ENV.NETWORK.CYCLE_MASK = 'NONE'; ENV.NETWORK.SLOT_LABEL_CORRECTION = False; GFN.MODEL.CONTINUOUS_BOUNDS = 'CLIP'; GFN.TRAINING_DATA_LOADER.LOW_MEMORY_TB = True. Check each one before using the samples: an option that changes the generated class of networks, the bounds of the continuous parameters, the reward or the backward policy changes what the samples and the diagnostics mean
+[PASS] environment ONE_STEP_LEVEL1_NETWORK; dataset dataset/benchmark_datasets/DS7.pickle: 59 taxa, 1824 sites, sha256 f1c3cd066c5157d79d70b8843e1377fc7fa906e173c9150457b6769104d92bf9; sites and token size agree with the configuration
+[PASS] objective TB (GFN.NET_LOSS absent from config.yaml: written before the DB/WDB switch existed, i.e. TB) (expected TB)
+[INFO] training seed recorded in config.yaml: 1
+[PASS] configured epochs 300 x 200 steps (expected 300)
+[INFO] prior: R_MAX 2, LAMBDA_R 1, type EXP_R, branch-length prior rate 10; slot-label correction False; reward C 0
+[INFO] ENV.NETWORK options of the run: {"BLOCK_TRIANGLES": "False", "CYCLE_MASK": "NONE", "LAMBDA_R": "1.0", "PRIOR_TYPE": "EXP_R", "R_MAX": "2", "SLOT_LABEL_CORRECTION": "False"}
+[WARN] class check could not be run (StopIteration: ): whether the configured environment generates the whole class C was not verified
+[INFO] checkpoint files: epochs 0..299, 300 files
+[PASS] checkpoint /srv/scratch1/mmousabeigi/phylogfn-v3eng-bench/runs/20261026_014933_ds7_network_no_knn_300ep_lowmem/checkpoints/checkpoint_000299.pt: epoch 299, IS the last configured epoch (299); 63369394 bytes; sha256 651ac6186e6bba6e1314d8232a4001d9bfd59586f41038db0d4a10c446e3f601
+[PASS] weights load into the model built from the configuration: 123 tensors, 4164087 parameters, all finite; optimizer state present
+[INFO] history.pkl: 300 records, epochs 0..299
+[PASS] history record of epoch 299: reward temperature 1.0 (the samples are drawn at temperature 1); MLL -37140.8334494524, mean R 2.0, R histogram [0, 0, 1024]
+[PASS] final_mlls.p present (training reached its end): mean -37140.950, std 0.168 over 3 estimates
+[INFO] training processes on this machine: 0
+[INFO] load average 3.91 3.87 4.21 on 56 CPUs; memory available 425.5 of 432.8 GB
+[INFO] GPUs: 0, NVIDIA L40S, 1 MiB, 46068 MiB, 0 % -- the posterior-topology tools default to the CPU and do not use a GPU unless --device cuda is given
+[PASS] forward pass: 4 trajectories in 1.0 s on the CPU; log P_F, log P_B, log scores finite; R of the 4 samples [2, 2, 2, 2]
+[INFO] Gaussian-mixture scales of the 2 merge-edge heads over the audit rollouts: 2380 values, min 5.470e-02, max 1.116e+00; at the floor 1e-3: 0; at the cap e^20: 0 (a non-zero count changes the sampled distribution only if the checkpoint was trained by a revision without these bounds)
+[INFO] source files executed by this audit: 44, digest 6e5676951c470b28b949adc868e659b5641b07908240d0bcee3526945324f099 (SHA-256 of the list of their SHA-256); not tracked by git: not a git repository; tracked with uncommitted changes: not a git repository. The sampler writes the SHA-256 of every file it executes into sampling_metadata.json (code.source_files_sha256)
+[INFO] summary: 10 PASS, 2 WARN, 0 FAIL

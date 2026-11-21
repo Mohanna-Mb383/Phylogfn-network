@@ -25,7 +25,7 @@ The analysis includes:
 | DS4 | Completed (audit warning) | Pending | Pending |
 | DS5 | Completed (audit warning) | Pending | Pending |
 | DS6 | Completed (audit warning) | Pending | Pending |
-| DS7 | Pending | Pending | Pending |
+| DS7 | Provisional (Class C unverified) | Pending | Pending |
 | DS8 | Pending | Pending | Pending |
 
 ## DS1 — Trajectory Balance
@@ -158,3 +158,25 @@ These results characterize the GFlowNet sampling distribution,
 not an exact independently verified Bayesian posterior.
 
 [DS6 Results](DS6/TB/)
+
+## DS7 — Trajectory Balance
+
+- Final checkpoint: epoch 299
+- Samples: 1,000
+- Comparison subset: 100
+- Rooted topologies: 675
+- Root-equivalence classes: 100
+- Reticulation signatures: 6
+- Displayed-tree sets: 100
+- Major trees: 233
+- Pairwise comparisons: 4,950
+
+Status: Provisional.
+
+The low-memory analysis required compatibility patches.
+The Class C enumeration check remains unresolved.
+External Extended Newick parser verification is pending.
+These results describe the sampled GFlowNet distribution,
+not an independently verified exact Bayesian posterior.
+
+[DS7 Results](DS7/TB/)
