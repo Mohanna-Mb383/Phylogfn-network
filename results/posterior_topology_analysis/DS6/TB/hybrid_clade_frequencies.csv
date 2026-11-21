@@ -1,0 +1,3 @@
+clade_json,n_taxa,samples_containing,fraction_of_samples,ci_low,ci_high,reticulation_occurrences,fraction_of_reticulations,mean_inheritance_of_heavier_edge
+"[""Ambrosiozyma_platypodis_L36984"", ""Candida_albicans_E15168"", ""Saccharomyces_cerevisiae""]",3,1000,1.0,0.996173241514445,1.0,1000,0.5,0.6771940831243992
+"[""Gnomonia_padicola""]",1,1000,1.0,0.996173241514445,1.0,1000,0.5,0.6578324678987265

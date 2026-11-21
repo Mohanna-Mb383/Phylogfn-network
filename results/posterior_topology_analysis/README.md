@@ -24,7 +24,7 @@ The analysis includes:
 | DS3 | Completed (1 audit warning) | Pending | Pending |
 | DS4 | Completed (audit warning) | Pending | Pending |
 | DS5 | Completed (audit warning) | Pending | Pending |
-| DS6 | Pending | Pending | Pending |
+| DS6 | Completed (audit warning) | Pending | Pending |
 | DS7 | Pending | Pending | Pending |
 | DS8 | Pending | Pending | Pending |
 
@@ -132,3 +132,29 @@ The compatibility audit retains a configuration warning.
 Independent external Newick parser verification is pending.
 
 [DS5 Results](DS5/TB/)
+
+
+## DS6 — Trajectory Balance
+
+- Training: 300 epochs
+- Final checkpoint: epoch 299
+- Policy samples: 1,000
+- Validated networks: 1,000
+- Comparison subset: 100
+- Rooted topologies: 1000
+- Root-equivalence classes: 982
+- Reticulation signatures: 351
+- Displayed-tree sets: 982
+- Major trees: 981
+- Pairwise comparisons: 4,950
+- Importance-sampling ESS: 55.1 / 1,000
+- Checkpoint audit: 12 PASS, 1 WARN, 0 FAIL
+
+The compatibility warning concerns additional configuration
+options in the original training code.
+External Newick parser verification was not performed.
+
+These results characterize the GFlowNet sampling distribution,
+not an exact independently verified Bayesian posterior.
+
+[DS6 Results](DS6/TB/)
