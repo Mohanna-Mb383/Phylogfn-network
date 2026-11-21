@@ -1,0 +1,4 @@
+clade_json,n_taxa,samples_containing,fraction_of_samples,ci_low,ci_high,reticulation_occurrences,fraction_of_reticulations,mean_inheritance_of_heavier_edge
+"[""Euptoieta_claudia""]",1,1000,1.0,0.996173241514445,1.0,1000,0.5,0.6050093323737383
+"[""Caligo_idomeneus""]",1,808,0.808,0.7824275640840395,0.8312151526888587,808,0.404,0.5912685624259238
+"[""Caligo_idomeneus"", ""Opsiphanes_cassina""]",2,192,0.192,0.16878484731114135,0.21757243591596065,192,0.096,0.6252028862169633

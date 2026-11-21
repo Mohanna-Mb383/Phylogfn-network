@@ -23,7 +23,7 @@ The analysis includes:
 | DS2 | Completed (compatibility warning) | Pending | Pending |
 | DS3 | Completed (1 audit warning) | Pending | Pending |
 | DS4 | Completed (audit warning) | Pending | Pending |
-| DS5 | Pending | Pending | Pending |
+| DS5 | Completed (audit warning) | Pending | Pending |
 | DS6 | Pending | Pending | Pending |
 | DS7 | Pending | Pending | Pending |
 | DS8 | Pending | Pending | Pending |
@@ -114,3 +114,21 @@ Configuration compatibility warning retained.
 External Newick parser validation not performed.
 
 [DS4 Results](DS4/TB/)
+
+## DS5 — Trajectory Balance
+
+- Training: 300 epochs
+- Final checkpoint: epoch 299
+- Policy samples: 1,000
+- Comparison subset: 100
+- Rooted topologies: 1000
+- Root-equivalence classes: 956
+- Reticulation signatures: 649
+- Displayed-tree sets: 956
+- Major trees: 944
+- Pairwise comparisons: 4,950
+
+The compatibility audit retains a configuration warning.
+Independent external Newick parser verification is pending.
+
+[DS5 Results](DS5/TB/)
