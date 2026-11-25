@@ -1,0 +1,5 @@
+experiment,mll,std,status,note
+DS1 tree baseline,-7108.47,,historical reference,Different model family; comparability requires matched evaluation
+DS1 network without KNN,-7043.06,,historical reference,Different run; not a controlled paired benchmark
+DS1 network with historical KNN,-6723.93,5.2,invalid as improvement claim,Original run froze after epoch ~200
+DS1 network with repaired KNN,-7153.974,4.074,completed and optimizer monitored,"300 epochs, 60,000 accepted, 0 rejected; evaluation uses 3 × 1,024"

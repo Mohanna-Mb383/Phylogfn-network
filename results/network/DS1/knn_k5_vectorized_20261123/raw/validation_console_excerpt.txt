@@ -1,0 +1,15 @@
+Completed epochs: 300
+Total accepted: 60000
+Total rejected: 0
+
+LAST 10 EPOCHS
+Epoch: 290 Accepted: 200 Rejected: 0
+Epoch: 291 Accepted: 200 Rejected: 0
+Epoch: 292 Accepted: 200 Rejected: 0
+Epoch: 293 Accepted: 200 Rejected: 0
+Epoch: 294 Accepted: 200 Rejected: 0
+Epoch: 295 Accepted: 200 Rejected: 0
+Epoch: 296 Accepted: 200 Rejected: 0
+Epoch: 297 Accepted: 200 Rejected: 0
+Epoch: 298 Accepted: 200 Rejected: 0
+Epoch: 299 Accepted: 200 Rejected: 0

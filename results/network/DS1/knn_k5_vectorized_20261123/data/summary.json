@@ -1,0 +1,31 @@
+{
+  "dataset": "DS1",
+  "model": "PhyloGFN-Net (level-1 network)",
+  "experiment": "kNN k=5, exact cosine, k-mer=4, Dirichlet propagation, vectorized feature path, TB",
+  "run_started_date": "2026-11-23",
+  "validation_reported_on": "2026-11-25",
+  "epoch_index_first": 0,
+  "epoch_index_last": 299,
+  "epochs_completed": 300,
+  "steps_per_epoch": 200,
+  "updates_accepted_total": 60000,
+  "updates_rejected_total": 0,
+  "final_mll_mean": -7153.974,
+  "final_mll_std": 4.074,
+  "final_mll_repeats": 3,
+  "trajectories_per_repeat": 1024,
+  "last_training_epoch": {
+    "epoch": 299,
+    "mll": -7154.572,
+    "pearson_r": 0.783,
+    "mean_reticulations": 0.2,
+    "sampled_R0": 831,
+    "sampled_R1": 183,
+    "sampled_R2": 10,
+    "samples": 1024
+  },
+  "provenance": "User-provided vm03 console outputs; full run logs, history, config, and checkpoints not directly accessed when preparing this package",
+  "inference_quality_assessment": "Not yet established; historical no-kNN comparison is not a controlled matched evaluation",
+  "gpu_speedup_assessment": "Not yet established; prior no-kNN/kNN benchmarks were taken under GPU contention",
+  "optimizer_health_assessment": "No rejected updates observed in all 60,000 recorded steps; this is not equivalent to proof of posterior correctness or convergence"
+}
