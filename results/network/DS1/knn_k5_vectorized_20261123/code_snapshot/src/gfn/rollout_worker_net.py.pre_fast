@@ -1,0 +1,140 @@
+"""
+Rollout worker for PhyloGFN-Net (network counterpart of rollout_worker_phylo.py).
+
+PhyloGFN steps all trajectories of a batch in lock-step because every tree trajectory has
+exactly N - 1 merges.  A network trajectory has N - 1 + 2R (+1 with the explicit STOP) steps
+with R chosen by the policy, so trajectories finish at different times: we keep a `done` mask,
+run the policy only on the active trajectories, and accumulate  sum log P_F  and  sum log P_B
+per trajectory as we go.
+
+Proposal additions:
+  * per-step records (log P_F, log P_B, log F(s)) padded to [B, T_max] for the Subtrajectory
+    Balance objective;
+  * learned backward policy: log P_B(s_t | s_{t+1}) is scored by the model when s_{t+1} is the
+    current state (the option index of the parent actually visited is recorded at step t); the
+    terminal state needs one extra encoder pass unless EXPLICIT_STOP makes it a single-parent
+    state.  The uniform backward log-probability is always returned as well (`log_pb_uniform`):
+    it is the proposal density needed by the importance-sampling estimate of log P_F^T(x);
+  * λ per trajectory (λ-conditioned policy).
+"""
+import numpy as np
+import torch
+from src.env.trajectory import Trajectory, SimpleTrajectory
+
+
+class RolloutWorkerNet:
+
+    def __init__(self, env):
+        self.env = env
+
+    def rollout(self, generator, episodes, scales=None, random_spec=None, generate_full_trajectories=False,
+                input_actions_set=None, lambdas=None):
+        env = self.env
+        learned_pb = getattr(generator, 'learned_pb', False)
+        need_flow = getattr(generator, 'loss_type', 'TB') == 'SUBTB'
+        states = [env.get_initial_state(lambda_r=(None if lambdas is None else float(lambdas[k]))) for k in range(episodes)]
+        feats = env.initial_features(episodes)                       # [B, l_max, 2, m, c]
+        trajectories = [Trajectory(s) if generate_full_trajectories else SimpleTrajectory() for s in states]
+        dev = feats.device
+        log_pf = torch.zeros(episodes, device=dev)
+        log_pb = torch.zeros(episodes, device=dev)
+        log_pb_uniform = torch.zeros(episodes, device=dev)
+        log_rewards = torch.zeros(episodes, dtype=torch.float64)
+        log_scores = torch.zeros(episodes, dtype=torch.float64)
+        step_pf = [[] for _ in range(episodes)]
+        step_pb = [[] for _ in range(episodes)]
+        step_flow = [[] for _ in range(episodes)]
+        taken = [None] * episodes                                     # backward option index of the transition INTO states[k]
+        pending_pb = [False] * episodes                               # learned P_B of the transition into the terminal state still to score
+        done = np.array([s.is_done for s in states])
+        step = 0
+        while not done.all():
+            active = np.where(~done)[0]
+            act_states = [states[k] for k in active]
+            input_actions = None
+            if input_actions_set is not None:
+                input_actions = []
+                for k in active:
+                    seq = input_actions_set[k] if k < len(input_actions_set) else None
+                    input_actions.append(seq[step] if (seq is not None and step < len(seq)) else None)
+            input_dict = env.prepare_rollout_inputs(feats[active], act_states, random_spec, input_actions)
+            if learned_pb:
+                input_dict['backward_taken'] = [taken[k] for k in active]
+            input_dict['need_flow'] = need_flow
+            ret = generator(input_dict)
+            actions = ret['actions']
+            new_states, new_feats, ls, lr = env.batch_apply_actions(actions, feats[active], act_states)
+            feats[active] = new_feats
+            act_t = torch.tensor(active, device=dev)
+            log_pf = log_pf.index_add(0, act_t, ret['log_paths_pf'])
+            pa = torch.tensor([float(s.num_parents()) for s in new_states], device=dev)
+            log_pb_uniform = log_pb_uniform.index_add(0, act_t, -torch.log(pa))
+            if learned_pb and 'log_pb_step' in ret:
+                # log P_B of the transition into the CURRENT state (scored now that its representation exists)
+                log_pb = log_pb.index_add(0, act_t, ret['log_pb_step'])
+                for t, k in enumerate(active):
+                    if taken[k] is not None:
+                        step_pb[k].append(ret['log_pb_step'][t])
+            elif not learned_pb:
+                log_pb = log_pb.index_add(0, act_t, -torch.log(pa))
+                for t, k in enumerate(active):
+                    step_pb[k].append(-torch.log(pa[t]))
+            for t, k in enumerate(active):
+                step_pf[k].append(ret['log_paths_pf'][t])
+                if need_flow:
+                    step_flow[k].append(ret['log_flow'][t])
+                states[k] = new_states[t]
+                taken[k] = env.backward_option_index(new_states[t], actions[t]) if learned_pb else None
+                if generate_full_trajectories:
+                    trajectories[k].update(new_states[t], actions[t], float(lr[t]) if new_states[t].is_done else 0.0, new_states[t].is_done)
+                else:
+                    trajectories[k].update(actions[t], float(lr[t]) if new_states[t].is_done else 0.0)
+                if new_states[t].is_done:
+                    done[k] = True
+                    log_rewards[k] = lr[t]
+                    log_scores[k] = ls[t]
+                    pending_pb[k] = learned_pb
+                    if generate_full_trajectories:
+                        trajectories[k].current_state.network = env.state_to_network(new_states[t])
+            step += 1
+        if learned_pb and any(pending_pb):
+            # the transition into each terminal state: a stopped state has a single parent (log P_B = 0);
+            # otherwise one extra encoder pass scores the learned backward policy on the terminal states
+            idx = [k for k in range(episodes) if pending_pb[k] and not states[k].stopped]
+            if idx:
+                input_dict = env.prepare_rollout_inputs(feats[idx], [states[k] for k in idx], None)
+                input_dict['backward_taken'] = [taken[k] for k in idx]
+                lp = generator.backward_only(input_dict)
+                log_pb = log_pb.index_add(0, torch.tensor(idx, device=dev), lp)
+                for t, k in enumerate(idx):
+                    step_pb[k].append(lp[t])
+            for k in range(episodes):
+                if pending_pb[k] and states[k].stopped:
+                    step_pb[k].append(torch.zeros((), device=dev))
+        lengths = torch.tensor([len(p) for p in step_pf], device=dev)
+        data = {
+            'log_pf': log_pf,
+            'log_pb': log_pb,
+            'log_pb_uniform': log_pb_uniform,
+            'log_rewards': log_rewards.to(log_pf),
+            'log_scores': log_scores,
+            'random_spec': random_spec,
+            'scales': scales,
+            'n_ret': np.array([s.n_ret for s in states]),
+            'lambdas': torch.tensor([s.lambda_r if s.lambda_r is not None else env.lambda_r for s in states], device=dev),
+            'lengths': lengths,
+        }
+        if need_flow:
+            data['step_log_pf'] = _pad(step_pf, dev)
+            data['step_log_pb'] = _pad(step_pb, dev)
+            data['step_log_flow'] = _pad(step_flow, dev)
+        return data, trajectories
+
+
+def _pad(lists, dev):
+    T = max(len(l) for l in lists)
+    out = torch.zeros(len(lists), T, device=dev)
+    for k, l in enumerate(lists):
+        if l:
+            out[k, :len(l)] = torch.stack(l)
+    return out

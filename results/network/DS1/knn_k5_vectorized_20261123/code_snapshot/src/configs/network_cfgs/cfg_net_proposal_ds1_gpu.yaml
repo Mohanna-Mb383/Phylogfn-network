@@ -1,0 +1,107 @@
+# PhyloGFlow (the proposal, every component on) for DS1 on one GPU -- the configuration of the 300-epoch
+# PhyloGFN-Net run (cfg_net_ds1_gpu.yaml) plus: k-NN candidate filtering (k = 5, 4-mer embeddings), explicit
+# STOP, λ-conditioned policy, SubTB with a learned backward policy, graph encoder, UNIFORM_R prior,
+# geometric ε schedule, 10 final MLL estimates.  Reward: likelihood throughout (set SCHEDULE for R4).
+# (NVIDIA L40S, ~3.5 s/step, 200 steps/epoch -> about 12 min of training per epoch + evaluation).
+# Prior on the number of reticulations: EXP_R, p(G) ∝ exp(-LAMBDA_R * R) over the whole level-1 class.
+# Use tools/make_cfg.py to derive variants (UNIFORM_R prior, R_MAX ladder, fewer epochs).
+AMP: false
+PARSIMONY_PROBLEM: false
+ENV:
+  ENVIRONMENT_TYPE: ONE_STEP_LEVEL1_NETWORK
+  SEQUENCE_TYPE: DNA_WITH_GAP
+  NETWORK:
+    R_MAX: 2
+    LAMBDA_R: 1.0
+    PRIOR_TYPE: UNIFORM_R           # prior on R, uniform over the r(N,R) topologies inside each R
+    PRIOR_EXPONENT_W: 1.0           # p(G|λ) ∝ exp(-λ β1^w)
+    EXPLICIT_STOP: true             # STOP is the forced terminal action (Build slide)
+    LAMBDA_CONDITIONING: true       # λ-conditioned policy; λ ~ U(LAMBDA_RANGE) per trajectory, swept at inference
+    LAMBDA_RANGE: [0.0, 4.0]
+    LAMBDA_EVAL: 1.0
+    KNN:
+      ENABLED: true                 # k-NN candidate filtering (objective O2)
+      K: 5
+      EMBEDDING: KMER               # KMER | ONEHOT | PRECOMPUTED (DNABERT-2 vectors from tools/embed_dnabert2.py)
+      KMER_K: 4
+      METRIC: COSINE
+      PROPAGATION: DIRICHLET        # ancestor embedding = 1/b-weighted harmonic combination of its children
+      MODE: EXACT                   # EXACT | INCREMENTAL
+      EPS_MIN: 0.001
+      EPS_EVAL: 0.001
+  EVOLUTION_MODEL:
+    COMPUTE_PRIOR: true
+    PRIOR_LAMBDA: 10.0
+  REWARD:
+    C: 0.0
+    RESHAPE_METHOD: EXPONENTIAL
+    SCALE: 1.0
+    TYPE: LIKELIHOOD
+    QUARTET_Q: 50
+GFN:
+  LOSS_TYPE: SUBTB                  # Subtrajectory Balance (RQ4)
+  BACKWARD_MODELING: LEARNED       # learned backward policy over the parents of a state
+  NORMALIZE_LIKELIHOOD: true
+  CONDITION_ON_SCALE: false
+  MODEL:
+    ARCH: TRANSFORMER
+    EDGES_MODELING:
+      DISTRIBUTION: MIXTURE
+      MIXTURE:
+        EXPR_INDEPENDENT: true
+        NB_COMPONENTS: 5
+        TYPE: NORMAL
+        USE_SOFT_PLUS: false
+        HEAD: {ACT_FN: RELU, DROPOUT: 0.0, HIDDEN_SIZE: 256, INPUT_SIZE: 384, LAYERS: 3}
+    RETICULATION_MODELING:
+      NB_COMPONENTS: 5
+      THETA_LOGIT_RANGE: 6.0
+      HEAD: {ACT_FN: RELU, DROPOUT: 0.0, HIDDEN_SIZE: 256, INPUT_SIZE: 256, LAYERS: 3}
+    TRANSFORMER:
+      DEPTH: 6
+      NUM_HEADS: 4
+      MLP_RATIO: 2
+      DROP_RATE: 0.0
+      ATTN_DROP_RATE: 0.0
+      SEQ_EMB: {ACT_FN: RELU, DROPOUT: 0.0, HIDDEN_SIZE: 256, INPUT_SIZE: -1, LAYERS: 0, OUTPUT_SIZE: 128}
+      PART1_HEAD: {CONCATENATE_SUMMARY_TOKEN: true, INPUT_SIZE: 256, HIDDEN_SIZE: 256, OUTPUT_SIZE: 1, LAYERS: 3, DROPOUT: 0.0, ACT_FN: RELU}
+      LOGITS_HEAD: {CONCATENATE_SUMMARY_TOKEN: true, INPUT_SIZE: 256, HIDDEN_SIZE: 256, OUTPUT_SIZE: 1, LAYERS: 3, DROPOUT: 0.0, ACT_FN: RELU}
+      SINGLE_LOGITS_HEAD: {INPUT_SIZE: 256, HIDDEN_SIZE: 256, OUTPUT_SIZE: 1, LAYERS: 3, DROPOUT: 0.0, ACT_FN: RELU}
+    SUBTB_LAMBDA: 0.9
+    GRAPH_ENCODER: {ENABLED: true, HIDDEN_SIZE: 64, LAYERS: 2}   # explicit topology encoding
+    EVALUATION_FINAL_MLL_REPEATS: 10
+    Z_PARTITION_INIT: -1
+    UPDATE_Z: true
+    LR_MODEL: 0.0001
+    LR_Z: 0.01
+    GRAD_CLIP: 10
+    L2_REG: 0
+    LOSS_FN: MSE
+    USE_LR_SCHEDULER: true
+    EVALUATION:
+      STATES_NUM: 30
+      TRAJECTORIES_PER_STATES: 50
+      EVALUATION_FREQ: 1
+      BATCH_SIZE: 32
+      FIXED_STATES: true
+  TRAINING_DATA_LOADER:
+    GFN_BATCH_SIZE: 64
+    BEST_STATE_BATCH_SIZE: 64
+    BEST_TREES_BUFFER_SIZE: 10000
+    BEST_TREES_TOPOLOGY_ONLY: false
+    MINI_BATCH_SPLITS: 1
+    EPOCHS_NUM: 300
+    STEPS_PER_EPOCH: 200
+    EXPLORATION:
+      METHOD: EPS_ANNEALING
+      START_VALUE: 0.5
+      END_VALUE: 0.001
+      ANNEAL_TYPE: GEOMETRIC          # eq. 5: eps_t = eps_start * gamma^t
+      T: 150
+    TEMPERATURE_ANNEALING:
+      TEMPERATURE_ANNEALING: true
+      START_VALUE: 16.0
+      END_VALUE: 1.0
+      T: 200
+      ANNEAL_TYPE: LINEAR
+      INVERSE_TEMPERATURE_ANNEALING: true
